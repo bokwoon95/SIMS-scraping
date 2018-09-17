@@ -1,0 +1,422 @@
+attempt:3
+first check the most naive approach, find hits where test method & test item match exactly
+    if hits.count == 1, answer
+    else dump the relevant test codes
+attempt:2
+hits = Search(Term)
+if hits.count == 1
+    #if cleaniness of testname match > 80%
+    if testname is an exact match
+        return refinedhits.first
+    else
+        flag_out("test code matches exactly but test names differ")
+        dump_results()
+else if hits.count > 1
+    refinedhits = hits.refineByExactMatch(Term)
+    if refinedhits.count == 1
+        #if cleaniness of testname match > 80%
+        if testname is an exact match
+            return refinedhits.first
+        else
+            flag_out("test code matches exactly but test names differ")
+            dump_results()
+    else if refinedhits.count > 1
+        flag_out("Multiple hits for the exact term") # There are multiple hits for the exact term
+        dump_results()
+else #if no hits for exact term
+    if last WORD is a number without an "&"
+        remove last word and search again
+        if there are multiple hits but none with the same number as the one you removed
+            # what about checking the test name with each term? opens a new can of worms
+            it's a reject
+    if last WORD is a number following an "&"
+    else
+        # What else could be the last word?
+
+attempt:1
+hits = Search(Term)
+if hits.count == 1
+    return hits.first # Exact match
+else if hits.count > 1
+    refinedhits = hits.refineByExactMatch(Term)
+    if refinedhits.count == 1
+        return refinedhits.first
+    else if refinedhits.count > 1
+        flag_out("Multiple hits for the exact term") # There are multiple hits for the exact term
+        dump_results()
+else #if hits.count == 0
+    While Term.wordcount >= 1
+        LastWord = Term.getLastWord
+        Term = Term.remove(LastWord).trim()
+        hits = Search(Term)
+        if hits.count == 1
+            return hits.first
+        if more than one hit
+            # Too far; reinsert the last word and refine the search
+            #each time by removing one character from the last word
+            while LastWord.count > 0
+                LastWord = LastWord.removeLastChar
+                hits = Search(Term + LastWord)
+                if hits.count == 1
+                    return hits.first
+                if hits.count > 1
+                    # do what?
+    # If you reach this point without getting an answer, it means there are no matches
+    flag_out("No matches found")
+return
+
+commas count as significant
+
+Test Code Search uses the input test code as-is. To test the match between the test code and the hit entries, standardize both with the following steps:
+lowercase everything
+remove spaces
+remove dashes
+remove commas
+remove colon
+
+Search code: BS 1377-5, 3
+Actual code: BS 1377-5
+Search name: One-Dimensional Consolidation Test
+Actual name: One-dimensional Consolidation
+
+Search code: BS 1377-2
+Too general, listed every entry starting with BS 1377-2
+Search name: Soil Classification Test
+Actual name: Soil Classification Test
+
+A lot of the times you search full code, nothing
+You remove the last number, something
+But none of them are the same number as the one you removed
+Do you still check for the name match cleaniness?
+    How do you standardize names, when they can be so wildly different?
+
+Make sure to trim all raw data because sometimes there's a lot of whitespace behind for no reason
+
+Codes with '&' are troublesome. Either you're very lucky and you get an exact code match
+
+testing
+
+Actually:
+If there is no exact hit,
+Strip the end part of a code. This is to cast the broadest net possible which will hopefully capture the correct hit.
+lowercase, unspace, undash, uncomma the exact code as well as every hit
+match the standardized code forms
+If no match, check the names
+    name checking requires a separate mechanism altogether
+
+==============
+Name matching:
+==============
+
+Water-Soluble Chloride Content` BS 1377-3 Cl 7.2
+BS 1377-3 Cl 7.2
+BS 1377-3
+Chloride (Water Soluble)` BS 1377-3
+---
+Organic Matter Content` BS 1377-3
+pH` BS 1377-3
+pH (Alkalinity) of Concrete Substrate` BS 1377-3
+Water Soluble Salt` BS 1377-3
+Water-Soluble Sulphate Content` BS 1377-3
+
+Acid Soluble Chloride Content` BS 1377-3 Cl 7.3
+BS 1377-3 Cl 7.3
+BS 1377-3
+---
+Acid Soluble Sulphate Content` BS 1377-3 Cl 5.2 & 5.5
+
+Total Dissolved Solid` CWA026
+CWA026
+Total Dissolved Solids (TDS)` CWA026
+
+Resistivity` BS 1377-3 Cl 10
+BS 1377-3 Cl 10
+BS 1377-3
+Resistivity` BS 1377-3 Cl 10.4
+
+Rapid Determination of Carbonate Content` ASTM D4373
+ASTM D4373
+Rapid Determination of Carbonate Content` ASTM D4373
+---
+Carbonate Content` ASTM D4373
+
+Electrical Conductivity` ISO 11265
+ISO 11265
+Electrical Conductivity` ISO 11265
+---
+Conductivity` ISO 11265
+
+Wetting and Drying Compacted Soil-Cement Mixtures` ASTM D559
+ASTM D559
+Wetting and Drying Compacted Soil-Cement Mixtures` ASTM D559
+---
+Anti- Fungal Testing` ASTM D5590
+
+Unconfined Compressive Strength of Core Specimens` ASTM D7012 Method C
+ASTM D7012 Method C
+ASTM D7012
+Unconfined Compressive Strength of Core Specimens` ASTM D7012
+---
+Uniaxial Compressive Strength of Intack Rock Core` ASTM D7012
+
+Point Load Strength Index` ISRM
+ISRM
+Point Load Index` ISRM 85
+Point Load Index` ISRM 85
+
+Petrographic Description of Rocks` ISRM
+ISRM
+???
+Petrographic Examination` ISRM
+
+CERCHAR Abrasivity` ASTM D7625
+ASTM D7625
+Abrasiveness of Rock CERCHAR Method` ASTM D7625
+
+Density, Porosity & Water Content` ISRM
+ISRM
+Density, Porosity & Water Content` ISRM
+
+Particle Size Distribution` BS EN 13383-2
+BS EN 13383-2
+---
+Particle Density & Water Absorption` BS EN 13383-2
+
+Length-to-Thickness Ratio (Elongation)` BS EN 13383-2
+BS EN 13383-2
+Length-to-Thickness Ratio (Elongation)` BS EN 13383-2
+
+Particle Density & Water Absorption` BS EN 13383-2
+BS EN 13383-2
+Particle Density & Water Absorption` BS EN 13383-2
+
+Petrographic Examination of Aggregates for Concrete` BS EN 932-3
+BS EN 932-3
+???
+Petrographic Analysis` BS EN 932-3
+Petrographic Examination` BS EN 932-3
+
+Particle Size Distribution (Sieve Analysis)` SS 73
+SS 73
+Particle Size Distribution (Sieve Analysis)` SS 73
+there are a LOT of SS 73 entries
+
+Particle Size Distribution (Sieve Analysis)` ASTM C136
+ASTM C136
+Particle Size Distribution (Sieve Analysis)` ASTM C136 & C117
+
+Particle Size Distribution (Sieve Analysis)` BS 812-103.1
+BS 812-103.1
+Particle Size Distribution (Sieve Analysis)` BS 812-103.1
+---
+Particle Size Distribution` BS 812-103.1
+Silt & Clay Content` BS 812-103.1
+
+Particle Size Distribution (Sieve Analysis)` BS EN 933-1
+BS EN 933-1
+Particle Size Distribution (Sieve Analysis)` BS EN 933-1
+---
+Fines Content (clay, Silt and dust)` BS EN 933-1
+Particle Size Distribution-Wet` BS EN 933-1
+Sieve Analysis` BS EN 933-1
+Particle Size Distribution < 2mm` BS EN 933-10
+
+Particle Size Distribution (Sieve Analysis)` ASTM D546 (ASTM D242)
+ASTM D546 (ASTM D242)
+ASTM D546
+Particle Size Distribution (Sieve Analysis)` ASTM D242 Spec. / ASTM D546
+
+Fineness Modulus` ASTM C136
+ASTM C136
+Fineness Modulus` ASTM C136
+---
+Salinity` ASTM C136
+Sieve Analysis` ASTM C136
+
+Fines Content (Clay, Silt and Dust) - Decantation Method` SS 73 Cl 13 Method B
+SS 73 Cl 13 Method B
+Fines Content (Clay, Silt and Dust) - Decantation Method` SS 73 Cl 13 Method B
+
+Fines Content (Clay, Silt and Dust) - Field Settling Test` SS 73 Cl 14 Method C
+SS 73 Cl 14 Method C
+Fines Content (Clay, Silt and Dust) - Field Settling Test` SS 73 Cl 14 Method C
+
+Fines Content (Clay, Silt and Dust)` BS 812-103.1
+BS 812-103.1
+---
+Particle Size Distribution` BS 812-103.1
+Particle Size Distribution (Sieve Analysis)` BS 812-103.1
+Silt & Clay Content` BS 812-103.1
+
+Fines Content (Clay, Silt and Dust)` ASTM C117
+ASTM C117
+---
+Materials finer than 75 µm` ASTM C117
+
+Fines Content (Clay, Silt and dust)` BS EN 933-1
+BS EN 933-1
+Fines Content (clay, Silt and dust)` BS EN 933-1
+---
+Particle Size Distribution (Sieve Analysis)` BS EN 933-1
+Particle Size Distribution-Wet` BS EN 933-1
+Sieve Analysis` BS EN 933-1
+
+Moisture Content` SS 73 Cl 28 Method A
+SS 73 Cl 28 Method A
+Moisture Content` SS 73 Cl 28 Method A
+
+Moisture content` BS 812-109
+BS 812-109
+Moisture content` BS 812-109
+
+Water Content` BS EN 1097-5
+BS EN 1097-5
+Water Content` BS EN 1097-5
+
+Loose Bulk Density & Void` BS EN 1097-3
+BS EN 1097-3
+Loose Bulk Density & Void` BS EN 1097-3
+
+Bulk Density (Compacted and Uncompacted) & Void` BS 812-2
+BS 812-2
+Bulk Density (Compacted and Loose) & Voids` BS 812-2
+---
+Uncompacted Bulk Density` BS 812-2:Clause 6.3
+Particle Density` BS 812-2, Cl 5.4
+Voids & Bulking` BS 812-2:Clause 6.4 & 6.5
+
+Bulk Density (Compacted and Uncompacted) & Void` SS 73
+SS 73
+Bulk Density (Compacted and Loose) & Voids` SS 73
+---
+theres a fuck ton of SS 73
+
+Particle Density & Water Absorption` BS EN 1097-6
+Density & Water Absorption` BS EN 1097-6, Cl 9
+Density & Water Absorption` BS EN 1097-6, Cl 6
+---
+Specific gravity & Water Absorption` BS EN 1097-6
+Thermal and weathering properties` BS EN 1097-6
+
+Particle Density & Water Absorption` BS 812-2
+BS 812-2
+Particle density & water absorption` BS 812-2, Clause 5.3
+Particle density & water absorption` BS 812-2, Clause 5.4
+Particle density & water absorption` BS 812-2, Clause 5.5
+` ---
+Bulk Density (Compacted and Loose) & Voids` BS 812-2
+Particle Density` BS 812-2, Cl 5.4
+Particle Density of Filler` BS 812-2, 5.7
+Uncompacted Bulk Density` BS 812-2:Clause 6.3
+Voids & Bulking` BS 812-2:Clause 6.4 & 6.5
+Water Absorption` BS 812-2 Cl.5.4
+
+Particle Density & Water Absorption` SS 73
+SS 73
+Particle Density & Water Absorption` SS 73
+---
+Particle Size Distribution (Sieve Analysis)` SS 73
+10% Fines Value (TFV)` SS 73
+Aggregate Crushing Value (ACV)` SS 73
+Aggregate Impact Value` SS 73
+Angularity Number` SS 73
+Bulk Density (Compacted and Loose) & Voids` SS 73
+Elongation Index` SS 73
+Los Angeles Abrasion (LA)` SS 73
+Organic Impurities` SS 73
+Sampling` SS 73
+Shape & Surface Texture` SS 73
+Acid Soluble Sulphate Content` SS 73 Pt 18
+Drying Shrinkage` SS 73 Part 20
+Fines Content (Clay, Silt and Dust) - Decantation Method` SS 73 Cl 13 Method B
+
+Relative Density (Specific Gravity) & Water Absorption` ASTM C127
+ASTM C127
+???
+Particle Density & Water Absorption` ASTM C127
+Water Absorption of Coarse Aggregate` ASTM C127
+
+Relative Density (Specific Gravity) & Water Absorption` ASTM C128 Gravimetric Method
+ASTM C128 Gravimetric Method
+ASTM C128
+???
+Particle Density & Water Absorption` ASTM C128
+Water Absorption of Fine Aggregate` ASTM C128
+
+Organic Impurities` ASTM C40
+ASTM C40
+Organic Impurities` ASTM C40
+---
+Organic Impurities in Sand` ASTM C40
+Organic Impurities in sand` ASTM C40: 2004
+
+Flakiness Index` SS 73 Part 5.1
+SS 73 Part 5.1
+SS 73
+Flakiness Index (FI)` SS 73-5.1
+---
+(A tonne of SS73)` SS 73
+
+10% Fines Value` BS 812-111
+BS 812-111
+Ten percent fines value` BS 812-111
+
+Los Angeles Abrasion` BS EN 1097-2
+BS EN 1097-2
+Los Angeles Abrasion (LA)` BS EN 1097-2, Cl 5
+---
+Impact Method` BS EN 1097-2, Cl 6
+
+Soundness Test` ASTM C88
+ASTM C88
+Soundness Test` ASTM C88
+---
+Soundness of Fine Aggregates` ASTM C88
+Bond Strength` ASTM C881
+Slant Shear Bond Strength` ASTM C882
+
+Magnesium Sulfate Soundness` BS 812-121
+BS 812-121
+BS 812
+Soundness in Magnesium Sulfate` BS 812 Part 121
+---
+Water-soluble Sulfates` BS 812-118 Cl 5
+Water-soluble Chloride Salts` BS 812- 117
+Sulphate Content` BS 812 :P 118
+
+Magnesium Sulfate Soundness` BS EN 1367-2
+BS EN 1367-2
+???
+Soundness Test (Magnesium / Sodium` BS EN 1367-2
+Soundness` BS EN 1367-2
+
+Magnesium Sulfate Soundness` SS 73 Part 21
+SS 73 Part 21
+SS 73
+---
+
+Drying Shrinkage` BS EN 1367-4
+BS EN 1367-4
+BS EN 1367
+Drying Shrinkage` BS EN 1367:4
+
+Organic Contaminators by Mortar Method` BS EN 1744-1 Cl 15.3
+BS EN 1744-1 Cl 15.3
+Organic Contaminators by Mortar Method` BS EN 1744:1
+
+Lightweight Particles in Aggregate` ASTM C123
+ASTM C123
+???
+Lightweight Particle Analysis` ASTM C123
+Lightweight pieces` ASTM C123
+
+Length Change of Concrete Due to Alkali-Carbonate Rock Reaction - Up to 56 days` ASTM C1105
+ASTM C1105
+Length Change of Concrete Due to Alkali-Carbonate Rock Reaction - Up to 56 days` ASTM C1105
+---
+Length Change of Concrete Due to Alkali-Carbonate Rock Reaction - Up to 1 year` ASTM C1105
+Length Change of Concrete Due to Alkali-Carbonate Rock Reaction - Up to 6 months` ASTM C1105
+
+Water-soluble Chloride Salts` BS 812-117
+BS 812-117
+Water-soluble Chloride Salts` BS 812- 117

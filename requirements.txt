@@ -1,0 +1,9 @@
+requests
+beautifulsoup4
+selenium
+jupyter
+pandas
+lxml
+openpyxl
+xlrd
+ipdb
