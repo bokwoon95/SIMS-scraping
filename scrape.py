@@ -153,9 +153,9 @@ class TestMethodMismatchIdentification:
 
         return temp_df
 
-    def first_pass(self, test_id, test_item, test_method, counter):
+    def obtain_id(self, test_id, test_item, test_method, counter):
         """
-        Searches for exact matches
+        Searches for test_method and heuristically decides which is the correct test_id from the results.
         """
         counter.increment()
 
@@ -182,64 +182,119 @@ class TestMethodMismatchIdentification:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
             print(res)
 
-        # Everything marked as 'res' pertains to the result table of the search
-        # res.iloc[x,0]: res_id
-        # res.iloc[x,1]: res_item
-        # res.iloc[x,2]: res_method
-        # if there are no hits, return "0 hits"
         if res.shape[0] == 0:
             return "0 hits"
-        # if there is only one hit
         elif res.shape[0] == 1:
-        # if the test_item string matches the hit item string perfectly, return the hit id
-            if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
-                print("Perfect Match: {} | {}".format(res.iloc[0,1], test_item))
-                return res.iloc[0,0]
-            # else if the item strings are a substring of the other, also return the hit id
-            elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
-                print("{} | {}".format(res.iloc[0,1], test_item))
-                return res.iloc[0,0]
-                # else return the hit id anyway, followed by the hit item string for manual verification later
-            else:
-                print("{} | {}".format(res.iloc[0,1], test_item))
-                return "{}:{}".format(res.iloc[0,0], res.iloc[0,1])
+            return self.filter_A(res, test_item)
         elif res.shape[0] > 1:
-            # filter the results by exact test_method string match
-            res_exact=res[res[2] == test_method.strip()]
-            # print exact hit results
-            print("exact hits: {}".format(res_exact.shape[0]))
+            res_EXACT_method=res[res[2] == test_method.strip()]
+            print("exact hits: {}".format(res_EXACT_method.shape[0]))
             with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
-                print(res_exact)
-            # if there is only one exact hit
-            if res_exact.shape[0] == 1:
-                # check if the test_item string matches the exact hit item string perfectly
-                if self.sanitize(res_exact.iloc[0,1]) == self.sanitize(test_item):
-                    print("Perfect Match: {} | {}".format(res_exact.iloc[0,1], test_item))
-                    return res_exact.iloc[0,0]
-                # else check if the item strings are a substring of the other
-                elif (self.sanitize(res_exact.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res_exact.iloc[0,1])):
-                    print("{} | {}".format(res.iloc[0,1], test_item))
-                    return res_exact.iloc[0,0]
-                # else dump the exact hit id anyway, followed by the exact hit item string for manual verification later
-                else:
-                    print("{} | {}".format(res_exact.iloc[0,1], test_item))
-                    return "{}:{}".format(res_exact.iloc[0,0], res_exact.iloc[0,1])
-            # if the exact search also yields multiple results,
-            #  you can't know the id for sure. Just return the number of hits you got
+                print(res_EXACT_method)
+            if res_EXACT_method.shape[0] == 1:
+                return self.filter_A(res_EXACT_method, test_item)
             else:
-                print("{} exact hits".format(res_exact.shape[0]))
-                return "{} exact hits".format(res_exact.shape[0])
+                res_EXACT_method_EXACT_item = res_EXACT_method[self.sanitize(res_EXACT_method[1]) == self.sanitize(test_item.strip())]
+                if res_EXACT_method_EXACT_item.shape[0] > 0
+                    return "E80: everything in res_exactmethod_exactitem"
+                else: # if .shape[0] == 0
+                    res_EXACT_method_PARTIAL_item = res_EXACT_method[res_EXACT_method[1] == test_item.strip()]
+                print("{} exact hits".format(res_exactmethod.shape[0]))
+                return "{} exact hits".format(res_exactmethod.shape[0])
         else:
             print("{} hits on initial search".format(res.shape[0]))
             return "{} hits".format(res.shape[0])
         print("you should never reach this part of first_pass()")
         return "you should never reach this part of first_pass()"
 
+    def filter_A(self, res, test_item):
+        """
+        Only accepts a dataframe ('res') of one entry.
+        Checks if that dataframe's item matches the test_item
+        Returns a string, either the correct id or the id followed by the test_item for manual verification
+        res.iloc[x,0]: res_id
+        res.iloc[x,1]: res_item
+        res.iloc[x,2]: res_method
+        """
+
+        # if there are no hits, return "0 hits"
+        if res.shape[0] != 1:
+            sys.exit("filter_A() only accepts dataframes with one entry!!! Passed in dataframe has {} entries".format(res.shape[0]))
+        # if the test_item string matches the hit item string perfectly, return the hit id
+        if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
+            print("Perfect Match: {} | {}".format(res.iloc[0,1], test_item))
+            return res.iloc[0,0]
+        # else if either of the item strings are a substring of the other, also return the hit id
+        elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
+            print("{} | {}".format(res.iloc[0,1], test_item))
+            return res.iloc[0,0]
+        # else return the hit id anyway, followed by the hit item string for manual verification later
+        else:
+            print("{} | {}".format(res.iloc[0,1], test_item))
+            return "{}:{}".format(res.iloc[0,0], res.iloc[0,1])
+        print("You should never reach this part of filter_A()")
+        return "You should never reach this part of filter_A()"
+
+    def filter_A_x(self, series, test_item):
+        """
+        Only accepts a dataframe ('res') of one entry.
+        Checks if that dataframe's item matches the test_item
+        Returns a string, either the correct id or the id followed by the test_item for manual verification
+        res.iloc[x,0]: res_id
+        res.iloc[x,1]: res_item
+        res.iloc[x,2]: res_method
+        """
+
+        # if there are no hits, return "0 hits"
+        if res.shape[0] != 1:
+            sys.exit("filter_A() only accepts dataframes with one entry!!! Passed in dataframe has {} entries".format(res.shape[0]))
+        # if the test_item string matches the hit item string perfectly, return the hit id
+        if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
+            print("Perfect Match: {} | {}".format(res.iloc[0,1], test_item))
+            return res.iloc[0,0]
+        # else if either of the item strings are a substring of the other, also return the hit id
+        elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
+            print("{} | {}".format(res.iloc[0,1], test_item))
+            return res.iloc[0,0]
+        # else return the hit id anyway, followed by the hit item string for manual verification later
+        else:
+            print("{} | {}".format(res.iloc[0,1], test_item))
+            return "{}:{}".format(res.iloc[0,0], res.iloc[0,1])
+        print("You should never reach this part of filter_A()")
+        return "You should never reach this part of filter_A()"
+
+    def filter_B(self, res, test_item):
+        """
+        Accepts a dataframe ('res')
+        Filters that dataframe by items that match the test_item
+        res.iloc[x,0]: res_id
+        res.iloc[x,1]: res_item
+        res.iloc[x,2]: res_method
+        """
+        perfect_matches = []
+        partial_matches = []
+        for row in res:
+            if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
+                perfect_matches.append((res.iloc[0,0],res.iloc[0,1]))
+            elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
+                partial_matches.append((res.iloc[0,0],res.iloc[0,1]))
+        if len(perfect_matches) == 1:
+            return
+        elif len(perfect_matches) > 1:
+            return
+        else:
+            if len(partial_matches) == 1:
+                return
+            elif len(partial_matches) > 1:
+                return
+            else:
+                return
+
     def execute(self):
-        counter = counter()
+        counter = counter_class()
         self.input_df['test_id'] = self.input_df.apply(
                 lambda row:
-                self.first_pass(
+                self.obtain_id(
                     row['test_id']
                     ,row['test_item']
                     ,row['test_method']
@@ -249,7 +304,7 @@ class TestMethodMismatchIdentification:
                 )
 
         # export the resultant dataframe to excel
-        self.input_df.to_excel("./df1.xlsx", header=None, index=None) # first_pass()
+        # self.input_df.to_excel("./df1.xlsx", header=None, index=None) # first_pass()
 
 if __name__ == '__main__':
     tmmi = TestMethodMismatchIdentification()
