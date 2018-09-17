@@ -10,6 +10,15 @@ import pandas as pd
 from lxml import html
 import ipdb
 
+class counter_class:
+
+    def __init__(self, limit=-1):
+        self.count = 0
+        self.limit = limit
+
+    def increment(self):
+        self.count+=1
+
 class TestMethodMismatchIdentification:
 
     def __init__(self, excel_input="Input.xlsx", limit=-1):
@@ -22,13 +31,9 @@ class TestMethodMismatchIdentification:
             self.driver_path = "./chromedriver"
         os.environ["webdriver.chrome.driver"] = self.driver_path
 
-        # With a counter subclass this should no longer be necessary
-        self.counter = 0
-        self.limit = limit
-
         # (Check) if ./data/ exists
         self.cached_list = [os.path.splitext(f)[0] for f in os.listdir("./data")]
-        self.cached_list = []
+        # self.cached_list = []
 
         # Initialize input dataframe from excel file
         self.input_df = pd.read_excel("./{}".format(excel_input), header=None, usecols=[0,1])
@@ -148,15 +153,15 @@ class TestMethodMismatchIdentification:
 
         return temp_df
 
-    def first_pass(self, test_id, test_item, test_method):
+    def first_pass(self, test_id, test_item, test_method, counter):
         """
         Searches for exact matches
         """
-        self.counter+=1 # update the global counter by +1
+        counter.increment()
 
         # If limit is non-zero, stop searching when the counter hits the limit
         # This is to speed up the debugging process since the web searches can be quite slow
-        if self.limit>0 and self.counter>self.limit:
+        if counter.limit>0 and counter.count>counter.limit:
             return "blank"
 
         # if the 'test_id' column of input_df isn't already filled with a test id then do a search
@@ -168,11 +173,11 @@ class TestMethodMismatchIdentification:
         # print progress
         print("[{}/{}] hits: {} ({},{})"
                 .format(
-                    self.counter,
-                    self.limit if self.limit>0 else self.input_df.shape[0],
-                    res.shape[0],
-                    test_method.strip(),
-                    test_item.strip()))
+                    counter.count
+                    ,counter.limit if counter.limit>0 else self.input_df.shape[0]
+                    ,res.shape[0]
+                    ,test_method.strip()
+                    ,test_item.strip()))
         # print hit results
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
             print(res)
@@ -186,7 +191,7 @@ class TestMethodMismatchIdentification:
             return "0 hits"
         # if there is only one hit
         elif res.shape[0] == 1:
-            # if the test_item string matches the hit item string perfectly, return the hit id
+        # if the test_item string matches the hit item string perfectly, return the hit id
             if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
                 print("Perfect Match: {} | {}".format(res.iloc[0,1], test_item))
                 return res.iloc[0,0]
@@ -194,7 +199,7 @@ class TestMethodMismatchIdentification:
             elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
                 print("{} | {}".format(res.iloc[0,1], test_item))
                 return res.iloc[0,0]
-            # else return the hit id anyway, followed by the hit item string for manual verification later
+                # else return the hit id anyway, followed by the hit item string for manual verification later
             else:
                 print("{} | {}".format(res.iloc[0,1], test_item))
                 return "{}:{}".format(res.iloc[0,0], res.iloc[0,1])
@@ -219,7 +224,7 @@ class TestMethodMismatchIdentification:
                 else:
                     print("{} | {}".format(res_exact.iloc[0,1], test_item))
                     return "{}:{}".format(res_exact.iloc[0,0], res_exact.iloc[0,1])
-            # if the exact search also yields multiple results, 
+            # if the exact search also yields multiple results,
             #  you can't know the id for sure. Just return the number of hits you got
             else:
                 print("{} exact hits".format(res_exact.shape[0]))
@@ -231,11 +236,17 @@ class TestMethodMismatchIdentification:
         return "you should never reach this part of first_pass()"
 
     def execute(self):
+        counter = counter()
         self.input_df['test_id'] = self.input_df.apply(
-                lambda row: self.first_pass(row['test_id'],row['test_item'],row['test_method']),
-                axis=1
+                lambda row:
+                self.first_pass(
+                    row['test_id']
+                    ,row['test_item']
+                    ,row['test_method']
+                    ,counter
+                    )
+                ,axis=1
                 )
-        self.counter=0 # reset global counter back to 0
 
         # export the resultant dataframe to excel
         self.input_df.to_excel("./df1.xlsx", header=None, index=None) # first_pass()
