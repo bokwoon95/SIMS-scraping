@@ -185,22 +185,22 @@ class TestMethodMismatchIdentification:
         if res.shape[0] == 0:
             return "0 hits"
         elif res.shape[0] == 1:
-            return self.filter_A(res, test_item)
+            return self.filter_A_x(res.iloc[0], test_item)
         elif res.shape[0] > 1:
             res_EXACT_method=res[res[2] == test_method.strip()]
             print("exact hits: {}".format(res_EXACT_method.shape[0]))
             with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
                 print(res_EXACT_method)
             if res_EXACT_method.shape[0] == 1:
-                return self.filter_A(res_EXACT_method, test_item)
+                return self.filter_A_x(res_EXACT_method.iloc[0], test_item)
             else:
-                res_EXACT_method_EXACT_item = res_EXACT_method[self.sanitize(res_EXACT_method[1]) == self.sanitize(test_item.strip())]
-                if res_EXACT_method_EXACT_item.shape[0] > 0
+                res_EXACT_method_EXACT_item = res_EXACT_method[res_EXACT_method[1] == test_item.strip()]
+                if res_EXACT_method_EXACT_item.shape[0] > 0:
                     return "E80: everything in res_exactmethod_exactitem"
                 else: # if .shape[0] == 0
                     res_EXACT_method_PARTIAL_item = res_EXACT_method[res_EXACT_method[1] == test_item.strip()]
-                print("{} exact hits".format(res_exactmethod.shape[0]))
-                return "{} exact hits".format(res_exactmethod.shape[0])
+                print("{} exact hits".format(res_EXACT_method.shape[0]))
+                return "{} exact hits".format(res_EXACT_method.shape[0])
         else:
             print("{} hits on initial search".format(res.shape[0]))
             return "{} hits".format(res.shape[0])
@@ -235,31 +235,24 @@ class TestMethodMismatchIdentification:
         print("You should never reach this part of filter_A()")
         return "You should never reach this part of filter_A()"
 
-    def filter_A_x(self, series, test_item):
+    def filter_A_x(self, srs, test_item):
         """
-        Only accepts a dataframe ('res') of one entry.
-        Checks if that dataframe's item matches the test_item
-        Returns a string, either the correct id or the id followed by the test_item for manual verification
         res.iloc[x,0]: res_id
         res.iloc[x,1]: res_item
         res.iloc[x,2]: res_method
         """
-
-        # if there are no hits, return "0 hits"
-        if res.shape[0] != 1:
-            sys.exit("filter_A() only accepts dataframes with one entry!!! Passed in dataframe has {} entries".format(res.shape[0]))
         # if the test_item string matches the hit item string perfectly, return the hit id
-        if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
-            print("Perfect Match: {} | {}".format(res.iloc[0,1], test_item))
-            return res.iloc[0,0]
+        if self.sanitize(srs[1]) == self.sanitize(test_item):
+            print("Perfect Match: {} | {}".format(srs[1], test_item))
+            return srs[0]
         # else if either of the item strings are a substring of the other, also return the hit id
-        elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
-            print("{} | {}".format(res.iloc[0,1], test_item))
-            return res.iloc[0,0]
+        elif (self.sanitize(srs[1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(srs[1])):
+            print("{} | {}".format(srs[1], test_item))
+            return srs[0]
         # else return the hit id anyway, followed by the hit item string for manual verification later
         else:
-            print("{} | {}".format(res.iloc[0,1], test_item))
-            return "{}:{}".format(res.iloc[0,0], res.iloc[0,1])
+            print("{} | {}".format(srs[1], test_item))
+            return "{}:{}".format(srs[0], srs[1])
         print("You should never reach this part of filter_A()")
         return "You should never reach this part of filter_A()"
 
