@@ -50,6 +50,9 @@ class TestMethodMismatchIdentification:
     def sanitize(self, s):
         return s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").strip()
 
+    def refine_search(self, s):
+        return s[0:-2]
+
     def prep_driver(self):
         """
         Sets up a webdriver instance of chrome and navigates to the appropriate webpage.
@@ -160,7 +163,7 @@ class TestMethodMismatchIdentification:
         counter.increment()
 
         # If limit is non-zero, stop searching when the counter hits the limit
-        # This is to speed up the debugging process since the web searches can be quite slow
+        # This is to avoid seraching the entire document while developing since the web searches can be quite slow
         if counter.limit>0 and counter.count>counter.limit:
             return "blank"
 
@@ -169,6 +172,16 @@ class TestMethodMismatchIdentification:
             return test_id
         else:
             res=self.search(test_method.strip())
+
+        # print("Searching for \"{}\" | \"{}\"".format(test_method.strip(), test_item.strip()))
+        if res.shape[0] == 0:
+            print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\""
+                    .format(
+                        counter.count
+                        ,counter.limit if counter.limit>0 else self.input_df.shape[0]
+                        ,test_method.strip()
+                        ,self.refine_search(test_method.strip())))
+            test_method = self.refine_search(test_method.strip())
 
         # print progress
         print("[{}/{}] hits: {} ({},{})"
@@ -183,59 +196,23 @@ class TestMethodMismatchIdentification:
             print(res)
 
         if res.shape[0] == 0:
-            return "0 hits"
+            print("Refined search still had no hits")
+            return "Refined search still had no hits"
         elif res.shape[0] == 1:
-            return self.filter_A_x(res.iloc[0], test_item)
-        elif res.shape[0] > 1:
-            res_EXACT_method=res[res[2] == test_method.strip()]
+            return self.verify_single_entry(res.iloc[0], test_item)
+        else: # res.shape[0] > 1
+            res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
             print("exact hits: {}".format(res_EXACT_method.shape[0]))
             with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
                 print(res_EXACT_method)
             if res_EXACT_method.shape[0] == 1:
-                return self.filter_A_x(res_EXACT_method.iloc[0], test_item)
+                return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
             else:
-                res_EXACT_method_EXACT_item = res_EXACT_method[res_EXACT_method[1] == test_item.strip()]
-                if res_EXACT_method_EXACT_item.shape[0] > 0:
-                    return "E80: everything in res_exactmethod_exactitem"
-                else: # if .shape[0] == 0
-                    res_EXACT_method_PARTIAL_item = res_EXACT_method[res_EXACT_method[1] == test_item.strip()]
-                print("{} exact hits".format(res_EXACT_method.shape[0]))
-                return "{} exact hits".format(res_EXACT_method.shape[0])
-        else:
-            print("{} hits on initial search".format(res.shape[0]))
-            return "{} hits".format(res.shape[0])
-        print("you should never reach this part of first_pass()")
-        return "you should never reach this part of first_pass()"
+                return self.filter_multiple_entries(res_EXACT_method, test_item, counter.count)
+        print("you should never reach this part of obtain_id()")
+        return "you should never reach this part of obtain_id()"
 
-    def filter_A(self, res, test_item):
-        """
-        Only accepts a dataframe ('res') of one entry.
-        Checks if that dataframe's item matches the test_item
-        Returns a string, either the correct id or the id followed by the test_item for manual verification
-        res.iloc[x,0]: res_id
-        res.iloc[x,1]: res_item
-        res.iloc[x,2]: res_method
-        """
-
-        # if there are no hits, return "0 hits"
-        if res.shape[0] != 1:
-            sys.exit("filter_A() only accepts dataframes with one entry!!! Passed in dataframe has {} entries".format(res.shape[0]))
-        # if the test_item string matches the hit item string perfectly, return the hit id
-        if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
-            print("Perfect Match: {} | {}".format(res.iloc[0,1], test_item))
-            return res.iloc[0,0]
-        # else if either of the item strings are a substring of the other, also return the hit id
-        elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
-            print("{} | {}".format(res.iloc[0,1], test_item))
-            return res.iloc[0,0]
-        # else return the hit id anyway, followed by the hit item string for manual verification later
-        else:
-            print("{} | {}".format(res.iloc[0,1], test_item))
-            return "{}:{}".format(res.iloc[0,0], res.iloc[0,1])
-        print("You should never reach this part of filter_A()")
-        return "You should never reach this part of filter_A()"
-
-    def filter_A_x(self, srs, test_item):
+    def verify_single_entry(self, srs, test_item):
         """
         res.iloc[x,0]: res_id
         res.iloc[x,1]: res_item
@@ -253,10 +230,10 @@ class TestMethodMismatchIdentification:
         else:
             print("{} | {}".format(srs[1], test_item))
             return "{}:{}".format(srs[0], srs[1])
-        print("You should never reach this part of filter_A()")
-        return "You should never reach this part of filter_A()"
+        print("You should never reach this part of verify_single_entry()")
+        return "You should never reach this part of verify_single_entry()"
 
-    def filter_B(self, res, test_item):
+    def filter_multiple_entries(self, res, test_item, count):
         """
         Accepts a dataframe ('res')
         Filters that dataframe by items that match the test_item
@@ -266,22 +243,25 @@ class TestMethodMismatchIdentification:
         """
         perfect_matches = []
         partial_matches = []
-        for row in res:
-            if self.sanitize(res.iloc[0,1]) == self.sanitize(test_item):
-                perfect_matches.append((res.iloc[0,0],res.iloc[0,1]))
-            elif (self.sanitize(res.iloc[0,1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[0,1])):
-                partial_matches.append((res.iloc[0,0],res.iloc[0,1]))
+        for i in range(len(res)):
+            if self.sanitize(res.iloc[i][1]) == self.sanitize(test_item):
+                perfect_matches.append((res.iloc[i][0],res.iloc[i][1]))
+            elif self.sanitize(res.iloc[i][1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[i][1]):
+                partial_matches.append((res.iloc[i][0],res.iloc[i][1]))
         if len(perfect_matches) == 1:
-            return
+            srs = pd.Series(perfect_matches[0])
+            return self.verify_single_entry(srs, test_item)
         elif len(perfect_matches) > 1:
-            return
+            print("{} Perfect Entries".format(len(perfect_matches)))
+            return "2 many entries 4 me"
         else:
             if len(partial_matches) == 1:
-                return
+                srs = pd.Series(partial_matches[0])
+                return self.verify_single_entry(srs, test_item)
             elif len(partial_matches) > 1:
-                return
-            else:
-                return
+                return "2 many entries 4 me"
+            else: # len(partial matches) == 0
+                return "no entries 4 me"
 
     def execute(self):
         counter = counter_class()
@@ -297,7 +277,8 @@ class TestMethodMismatchIdentification:
                 )
 
         # export the resultant dataframe to excel
-        # self.input_df.to_excel("./df1.xlsx", header=None, index=None) # first_pass()
+        # self.input_df.to_excel("./df1.xlsx", header=None, index=None)
+        # self.input_df.to_excel("./df2.xlsx", header=None, index=None)
 
 if __name__ == '__main__':
     tmmi = TestMethodMismatchIdentification()
