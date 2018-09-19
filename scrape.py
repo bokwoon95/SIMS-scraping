@@ -50,8 +50,8 @@ class TestMethodMismatchIdentification:
     def sanitize(self, s):
         return s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").strip()
 
-    def refine_search(self, s):
-        return s[0:-2]
+    def substring_check(self, str1, str2):
+        return self.sanitize(str1) in self.sanitize(str2) or self.sanitize(str2) in self.sanitize(str1)
 
     def prep_driver(self):
         """
@@ -211,6 +211,9 @@ class TestMethodMismatchIdentification:
                 return self.filter_multiple_entries(res_EXACT_method, test_item, counter.count)
         print("you should never reach this part of obtain_id()")
         return "you should never reach this part of obtain_id()"
+
+    def refine_search(self, s):
+        return s[0:-2]
 
     def verify_single_entry(self, srs, test_item):
         """
