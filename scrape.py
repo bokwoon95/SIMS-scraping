@@ -48,7 +48,14 @@ class TestMethodMismatchIdentification:
             sys.exit("{} must be an excel file with only 2 or 3 columns ({} detected)".format(excel_input, self.input_df.shape[1]))
 
     def sanitize(self, s):
-        return s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").replace("&","and").strip()
+        """
+        So that similar (but slightly different) strings will get 'sanitized' into a more uniform version
+        that will have a higher chance to be correctly matched together
+        """
+        s = s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").replace("&","and").strip()
+        # Additional sanitization rules
+        s = s.replace("sulphate","sulfate")
+        return s
 
     def substring_check(self, str1, str2):
         return self.sanitize(str1) in self.sanitize(str2) or self.sanitize(str2) in self.sanitize(str1)
@@ -162,9 +169,11 @@ class TestMethodMismatchIdentification:
         """
         if recursion_level == 0:
             counter.increment()
-        if counter.count == 49:
+        if counter.count == 97:
             ipdb.set_trace()
 
+        # limit is used to check how many total iterations are needed
+        # counter.count tracks how many of those iterations have already been completed
         limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
 
         # If limit is non-zero, stop searching when the counter hits the limit
@@ -178,7 +187,7 @@ class TestMethodMismatchIdentification:
         else:
             res=self.search(test_method.strip())
 
-        # print("Searching for \"{}\" | \"{}\"".format(test_method.strip(), test_item.strip()))
+        #
         if res.shape[0] == 0:
             test_method_refined = self.refine_search(test_method.strip())
             if test_method_refined == test_method:
@@ -207,9 +216,7 @@ class TestMethodMismatchIdentification:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
             print(res)
 
-        # if res.shape[0] == 0:
-        #     print("Refined search still had no hits")
-        #     return "Refined search still had no hits"
+        #if res.shape[0] == 0 is already handled by the recursive section on top
         if res.shape[0] == 1:
             return self.verify_single_entry(res.iloc[0], test_item)
         else: # res.shape[0] > 1
@@ -217,10 +224,16 @@ class TestMethodMismatchIdentification:
             print("exact hits: {}".format(res_EXACT_method.shape[0]))
             with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
                 print(res_EXACT_method)
+            if res_EXACT_method.shape[0] == 0:
+                return self.filter_and_verify_multiple_entries(res, test_item, test_method)
             if res_EXACT_method.shape[0] == 1:
                 return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
             else:
-                return self.filter_and_verify_multiple_entries(res_EXACT_method, test_method, test_item, counter.count)
+                # If you can't find any matches for test_item in `res_EXACT_method`, search in the unfiltered `res` instead
+                stringg = self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method)
+                if re.compile("Searched for \".+\" but no item matches \".+\" exactly").match(stringg):
+                    return self.filter_and_verify_multiple_entries(res, test_item, test_method)
+                return self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method)
         print("you should never reach this part of obtain_id()")
         return "you should never reach this part of obtain_id()"
 
@@ -267,7 +280,7 @@ class TestMethodMismatchIdentification:
         print("You should never reach this part of verify_single_entry()")
         return "You should never reach this part of verify_single_entry()"
 
-    def filter_and_verify_multiple_entries(self, res, test_method, test_item, count):
+    def filter_and_verify_multiple_entries(self, res, test_item, test_method):
         """
         Accepts a dataframe ('res')
         Filters that dataframe by items that match the test_item
@@ -283,6 +296,8 @@ class TestMethodMismatchIdentification:
                 perfect_matches.append((res.iloc[i][0],res.iloc[i][1]))
             elif self.substring_check(res.iloc[i][1], test_item):
                 partial_matches.append((res.iloc[i][0],res.iloc[i][1]))
+            all_entries.append((res.iloc[i][0],res.iloc[i][1]))
+
         if len(perfect_matches) == 1:
             srs = pd.Series(perfect_matches[0])
             return self.verify_single_entry(srs, test_item)
@@ -300,14 +315,17 @@ class TestMethodMismatchIdentification:
                 print("{} Partial Matches".format(len(perfect_matches)))
                 print("{}".format(stringg))
                 return stringg
+            elif len(all_entries) <= 3:
+                stringg = self.dump_tuples(all_entries)
+                return stringg
             else: # len(partial matches) == 0
                 return "Searched for \"{}\" but no item matches \"{}\" exactly".format(test_method, test_item)
 
     def dump_tuples(self, listt):
         stringg = ""
         for t in listt:
-            stringg+="{}:{}, ".format(t[0], t[1])
-        return stringg[0:-2]
+            stringg+="{}:{}|  ".format(t[0], t[1])
+        return stringg[0:-3]
 
     def execute(self):
         counter = counter_class()

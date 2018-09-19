@@ -9,26 +9,25 @@ git reset --hard origin/master
 
 ✓ don't recurse obtain_id if the string is already two words short
 
-In uncertain situations, if number of elements in results is <= 3, dump tuples
+✓ In uncertain situations, if number of elements in results is <= 3, dump tuples
 
-[14] Searched for "BS 812-103.1" but no item matches "Fines Content (Clay, Silt and Dust)" exactly
-[22] Searched for "SS 73" but no item matches "Bulk Density (Compacted and Uncompacted) & Void" exactly
-[23] Searched for "BS EN 1097-6" but no item matches "Particle Density & Water Absorption" exactly
-[26] Searched for "ASTM C127" but no item matches "Relative Density (Specific Gravity) & Water Absorption" exactly
-[27] Searched for "ASTM C128" but no item matches "Relative Density (Specific Gravity) & Water Absorption" exactly
-[31] Searched for "ASTM C40" but no item matches "Organic Impurites" exactly
-[32] Searched for "SS 73" but no item matches "Organic Impurites" exactly
-[36] Searched for "SS 73" but no item matches "Flakiness Index" exactly
-[49] Searched for "BS EN 1097-2" but no item matches "Los Angeles Abrasion" exactly
-[52] Searched for "BS 812" but no item matches "Magnesium Sulfate Soundness" exactly
-[54] Searched for "SS 73" but no item matches "Magnesium Sulfate Soundness" exactly
->>[57] Searched for "BS EN 1367" but no item matches "Drying Shrinkage" exactly
-[66] Searched for "BS EN 1744-1" but no item matches "Organic Contaminators by Mortar Method" exactly
-[76] Searched for "ASTM C123" but no item matches "Lightweight Particles in Aggregate" exactly
->>[81] Searched for "BS 812" but no item matches "Water-soluble Chloride Salts" exactly
->>[84] Searched for "SS 73:" but no item matches "Water-soluble Sulfates" exactly
-[86] Searched for "BS 812-118" but no item matches "Water-soluble Sulfates" exactly
-[90] Searched for "BS EN 1744-1" but no item matches "Acid Soluble Sulfates" exactly
-[97] Searched for "BS EN 1744-1" but no item matches "Loss on Ignition" exactly
+Depending on whether the res or res_EXACT_match is passed in, filter_and_verify_multiple_entries() might have to return the test_method as well.
+    if it's res_EXACT_match, the test_method is the same as what's already in the excel sheet
+    if it's only res, the test_method would not be an exact match as the one in the excel sheet, and it should be noted in the test_id column for manual verification
+> This is actually more complicated than it seems because obtain_id() only knows the string of the test_method, it doesn't know whether that string has been refined once or not. It also doesn't know which row that test_method is coming from.
+> It can actually tell whether the test_method string's been refined before by checking if the recursion_level is 0. But the actual creation of test_ids is not handled by obtain_id() itself, it's handled by the two helper functions verify_single_entry() and filter_and_verify_multiple_entries().
+    That means it has to pass the knowledge of the recursion_level down into these two functions, which must then implement some switching logic of returning either the test_method if the recursion_level is non zero and not if the recursion_level is zero.
+    But I'm leery of adding even more variables to these functions because it makes the task of understanding these functions a lot harder.
+    ◇ I might just leave these issues alone first unless a critical mismatch error happens
+        ◇ Until then this means that the test_methods of the test_ids found by the program might not be exactly what the test_method in the input table is
+
+filter_and_verify_mulitple_entries(): If the perfect and partial matching of sanitized strings fail, its time to fallback on a keyword matching system.
+This is done by calling yet another function, filter_and_verify_by_keywords() [name TBD]
+    Analyze the test_item string and mark out keywords that MUST exist.
+    Check which item strings in the results table contains those MUST HAVE keywords, and tuple dump them all into the test_id column
+
+Maybe move the limit logic:
+    limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
+into the counter object itself? So every invocation of obtain_id() doesn't have to recalculate this. Also it's less complexity in obtain_id() itself.
 
 Try to get python script to run from venv without installing python on the computer
