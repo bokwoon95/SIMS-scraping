@@ -226,7 +226,7 @@ class TestMethodMismatchIdentification:
             print("Perfect Match: {} | {}".format(srs[1], test_item))
             return srs[0]
         # else if either of the item strings are a substring of the other, also return the hit id
-        elif (self.sanitize(srs[1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(srs[1])):
+        elif self.substring_check(srs[1], test_item):
             print("{} | {}".format(srs[1], test_item))
             return srs[0]
         # else return the hit id anyway, followed by the hit item string for manual verification later
@@ -249,7 +249,7 @@ class TestMethodMismatchIdentification:
         for i in range(len(res)):
             if self.sanitize(res.iloc[i][1]) == self.sanitize(test_item):
                 perfect_matches.append((res.iloc[i][0],res.iloc[i][1]))
-            elif self.sanitize(res.iloc[i][1]) in self.sanitize(test_item) or self.sanitize(test_item) in self.sanitize(res.iloc[i][1]):
+            elif self.substring_check(res.iloc[i][1], test_item):
                 partial_matches.append((res.iloc[i][0],res.iloc[i][1]))
         if len(perfect_matches) == 1:
             srs = pd.Series(perfect_matches[0])
