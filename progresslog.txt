@@ -5,21 +5,30 @@ git reset --hard origin/master
 
 ✓ dump all tuples
 
-✓ In uncertain situations, if number of elements in results is <= 3, dump tuples
-
 ✓ Rather than checking for recursion count, check if further refinement is possible.
 
-extract dump_tuple into its own function
+✓ don't recurse obtain_id if the string is already two words short
 
->>>how regex BS 812-121
->>how regex ASTM C128 Gravimetric Method
+In uncertain situations, if number of elements in results is <= 3, dump tuples
 
-don't recurse obtain_id() more than 2 times
-
-Why does Searching for [84] "SS 73: Part 18" fail to find the exact term? The algorithm should have been able to catch it.
-Why is 49, 84 & 86 blank? Iirc it was fine as of commit:4d1389d
-[81] BS 812 | "Water-soluble Chloride Salts" is searched and contains "Water-soluble Chloride Salts" in the results so why doesn't it appear in the excel file?
+[14] Searched for "BS 812-103.1" but no item matches "Fines Content (Clay, Silt and Dust)" exactly
+[22] Searched for "SS 73" but no item matches "Bulk Density (Compacted and Uncompacted) & Void" exactly
+[23] Searched for "BS EN 1097-6" but no item matches "Particle Density & Water Absorption" exactly
+[26] Searched for "ASTM C127" but no item matches "Relative Density (Specific Gravity) & Water Absorption" exactly
+[27] Searched for "ASTM C128" but no item matches "Relative Density (Specific Gravity) & Water Absorption" exactly
+[31] Searched for "ASTM C40" but no item matches "Organic Impurites" exactly
+[32] Searched for "SS 73" but no item matches "Organic Impurites" exactly
+[36] Searched for "SS 73" but no item matches "Flakiness Index" exactly
+[49] Searched for "BS EN 1097-2" but no item matches "Los Angeles Abrasion" exactly
+[52] Searched for "BS 812" but no item matches "Magnesium Sulfate Soundness" exactly
+[54] Searched for "SS 73" but no item matches "Magnesium Sulfate Soundness" exactly
+>>[57] Searched for "BS EN 1367" but no item matches "Drying Shrinkage" exactly
+[66] Searched for "BS EN 1744-1" but no item matches "Organic Contaminators by Mortar Method" exactly
+[76] Searched for "ASTM C123" but no item matches "Lightweight Particles in Aggregate" exactly
+>>[81] Searched for "BS 812" but no item matches "Water-soluble Chloride Salts" exactly
+>>[84] Searched for "SS 73:" but no item matches "Water-soluble Sulfates" exactly
+[86] Searched for "BS 812-118" but no item matches "Water-soluble Sulfates" exactly
+[90] Searched for "BS EN 1744-1" but no item matches "Acid Soluble Sulfates" exactly
+[97] Searched for "BS EN 1744-1" but no item matches "Loss on Ignition" exactly
 
 Try to get python script to run from venv without installing python on the computer
-
-not so important for now: extrastrip() that removes (-, : and .). Use this after a refinement

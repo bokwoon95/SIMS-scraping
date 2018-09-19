@@ -230,6 +230,7 @@ class TestMethodMismatchIdentification:
         bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
         part = re.compile("^(.+)\sPart\s.+$").match(s) # SS 73 Part 21
         hyphen = re.compile("^([^-]+)-.+$").match(s) # BS 812-121
+        twowords = re.compile("^([A-Z0-9]+\s[A-Z0-9]+)\s.+$").match(s) # ASTM C128 Gravimetric Method
 
         if part:
             return part.group(1)
@@ -237,10 +238,12 @@ class TestMethodMismatchIdentification:
             return bracket.group(1)
         elif cl:
             return cl.group(1)
-        elif len(s.split()) < 2:
+        elif len(s.split()) < 2: # this ensures that there are at least two words in the string
             return s
         elif hyphen:
             return hyphen.group(1)
+        elif twowords:
+            return twowords.group(1)
         return s
 
     def verify_single_entry(self, srs, test_item):
@@ -274,6 +277,7 @@ class TestMethodMismatchIdentification:
         """
         perfect_matches = []
         partial_matches = []
+        all_entries = []
         for i in range(len(res)):
             if self.sanitize(res.iloc[i][1]) == self.sanitize(test_item):
                 perfect_matches.append((res.iloc[i][0],res.iloc[i][1]))
@@ -283,25 +287,27 @@ class TestMethodMismatchIdentification:
             srs = pd.Series(perfect_matches[0])
             return self.verify_single_entry(srs, test_item)
         elif len(perfect_matches) > 1:
-            stringg = ""
-            for m in perfect_matches:
-                stringg+="{}:{}, ".format(m[0], m[1])
+            stringg = self.dump_tuples(perfect_matches)
             print("{} Perfect Matches".format(len(perfect_matches)))
             print("{}".format(stringg))
-            return stringg[0:-2]
+            return stringg
         else:
             if len(partial_matches) == 1:
                 srs = pd.Series(partial_matches[0])
                 return self.verify_single_entry(srs, test_item)
             elif len(partial_matches) > 1:
-                stringg = ""
-                for m in partial_matches:
-                    stringg+="{}:{}, ".format(m[0], m[1])
+                stringg = self.dump_tuples(partial_matches)
                 print("{} Partial Matches".format(len(perfect_matches)))
                 print("{}".format(stringg))
-                return stringg[0:-2]
+                return stringg
             else: # len(partial matches) == 0
                 return "Searched for \"{}\" but no item matches \"{}\" exactly".format(test_method, test_item)
+
+    def dump_tuples(self, listt):
+        stringg = ""
+        for t in listt:
+            stringg+="{}:{}, ".format(t[0], t[1])
+        return stringg[0:-2]
 
     def execute(self):
         counter = counter_class()
