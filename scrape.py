@@ -48,7 +48,7 @@ class TestMethodMismatchIdentification:
             sys.exit("{} must be an excel file with only 2 or 3 columns ({} detected)".format(excel_input, self.input_df.shape[1]))
 
     def sanitize(self, s):
-        return s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").strip()
+        return s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").replace("&","and").strip()
 
     def substring_check(self, str1, str2):
         return self.sanitize(str1) in self.sanitize(str2) or self.sanitize(str2) in self.sanitize(str1)
@@ -162,6 +162,8 @@ class TestMethodMismatchIdentification:
         """
         if recursion_level == 0:
             counter.increment()
+        if counter.count == 49:
+            ipdb.set_trace()
 
         limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
 
@@ -178,17 +180,19 @@ class TestMethodMismatchIdentification:
 
         # print("Searching for \"{}\" | \"{}\"".format(test_method.strip(), test_item.strip()))
         if res.shape[0] == 0:
-            if recursion_level != 0:
-                print("[{}/{}] Refined search of \"{}\" still had no hits".format(counter.count, limit, test_method.strip()))
-                return "Refined search still had no hits"
+            test_method_refined = self.refine_search(test_method.strip())
+            if test_method_refined == test_method:
+                print("[{}/{}] Search of \"{}\" had no hits".format(counter.count, limit, test_method.strip()))
+                return "Search of \"{}\" had no hits".format(test_method.strip())
             else:
                 print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\""
                         .format(
                             counter.count
                             ,limit
                             ,test_method.strip()
-                            ,self.refine_search(test_method.strip())))
-                test_method_refined = self.refine_search(test_method.strip())
+                            ,test_method_refined
+                            )
+                        )
                 return self.obtain_id(test_id, test_item, test_method_refined, counter, recursion_level=recursion_level+1)
 
         # print progress
@@ -216,11 +220,27 @@ class TestMethodMismatchIdentification:
             if res_EXACT_method.shape[0] == 1:
                 return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
             else:
-                return self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, counter.count)
+                return self.filter_and_verify_multiple_entries(res_EXACT_method, test_method, test_item, counter.count)
         print("you should never reach this part of obtain_id()")
         return "you should never reach this part of obtain_id()"
 
     def refine_search(self, s):
+
+        cl = re.compile("^(.+)\s[cC][lL]\s.+$").match(s) # BS EN 1744-1 Cl 15.3
+        bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
+        part = re.compile("^(.+)\sPart\s.+$").match(s) # SS 73 Part 21
+        hyphen = re.compile("^([^-]+)-.+$").match(s) # BS 812-121
+
+        if part:
+            return part.group(1)
+        elif bracket:
+            return bracket.group(1)
+        elif cl:
+            return cl.group(1)
+        elif len(s.split()) < 2:
+            return s
+        elif hyphen:
+            return hyphen.group(1)
         return s
 
     def verify_single_entry(self, srs, test_item):
@@ -244,7 +264,7 @@ class TestMethodMismatchIdentification:
         print("You should never reach this part of verify_single_entry()")
         return "You should never reach this part of verify_single_entry()"
 
-    def filter_and_verify_multiple_entries(self, res, test_item, count):
+    def filter_and_verify_multiple_entries(self, res, test_method, test_item, count):
         """
         Accepts a dataframe ('res')
         Filters that dataframe by items that match the test_item
@@ -281,7 +301,7 @@ class TestMethodMismatchIdentification:
                 print("{}".format(stringg))
                 return stringg[0:-2]
             else: # len(partial matches) == 0
-                return "test_method matches exactly but no test_item matches exactly (could exist but just in different format)"
+                return "Searched for \"{}\" but no item matches \"{}\" exactly".format(test_method, test_item)
 
     def execute(self):
         counter = counter_class()

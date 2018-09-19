@@ -1,0 +1,25 @@
+git fetch --all
+git reset --hard origin/master
+
+✓ Get refined_search to have hits
+
+✓ dump all tuples
+
+✓ In uncertain situations, if number of elements in results is <= 3, dump tuples
+
+✓ Rather than checking for recursion count, check if further refinement is possible.
+
+extract dump_tuple into its own function
+
+>>>how regex BS 812-121
+>>how regex ASTM C128 Gravimetric Method
+
+don't recurse obtain_id() more than 2 times
+
+Why does Searching for [84] "SS 73: Part 18" fail to find the exact term? The algorithm should have been able to catch it.
+Why is 49, 84 & 86 blank? Iirc it was fine as of commit:4d1389d
+[81] BS 812 | "Water-soluble Chloride Salts" is searched and contains "Water-soluble Chloride Salts" in the results so why doesn't it appear in the excel file?
+
+Try to get python script to run from venv without installing python on the computer
+
+not so important for now: extrastrip() that removes (-, : and .). Use this after a refinement
