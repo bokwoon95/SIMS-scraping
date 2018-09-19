@@ -30,4 +30,10 @@ Maybe move the limit logic:
     limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
 into the counter object itself? So every invocation of obtain_id() doesn't have to recalculate this. Also it's less complexity in obtain_id() itself.
 
+Implement smart column matching for the input excel file so that it can accept a wider variety of input table formats
+
 Try to get python script to run from venv without installing python on the computer
+
+Is verify_single_entry() really necessary? Can you reuse the general logic for filter_and_verify_multiple_entries() instead? Like using a list, then comparing its contents?
+
+The final goal would be to extend this to scraping for units and their prices (or lack thereof) followed by automated test creation if they are missing. Then it would truly be an end-to-end solution.

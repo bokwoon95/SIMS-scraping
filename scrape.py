@@ -1,11 +1,10 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import datetime
 import os
-import time
 import re
 import sys
+import time
 import pandas as pd
 from lxml import html
 import ipdb
@@ -31,9 +30,9 @@ class TestMethodMismatchIdentification:
             self.driver_path = "./chromedriver"
         os.environ["webdriver.chrome.driver"] = self.driver_path
 
-        # (Check) if ./data/ exists
+        # (Check) if ./data/ exists, else create one
         self.cached_list = [os.path.splitext(f)[0] for f in os.listdir("./data")]
-        # self.cached_list = []
+        # self.cached_list = [] # uncomment this if you want to regenerate your cache
 
         # Initialize input dataframe from excel file
         self.input_df = pd.read_excel("./{}".format(excel_input), header=None, usecols=[0,1])
@@ -92,8 +91,9 @@ class TestMethodMismatchIdentification:
 
     def search(self, method):
         """
-        Searches a test method and returns the results in a dataframe
-        It will use any existing cached results if they exist
+        Searches a test method and records the results in a dataframe
+        It will use any existing cached results if they exist,
+        else it will perform the search and cache those results
         """
 
         method_filename = method.replace(":","..") # Windows forbids filenames with a colon ":", replace those with two dots ".." instead
@@ -101,7 +101,6 @@ class TestMethodMismatchIdentification:
         # if cached results for the method search already exists, return it instead of doing the search again
         if method_filename in self.cached_list:
             print("")
-            # print("{} already exists in cached_list".format(method_filename))
             # if the csv file is empty, return an empty dataframe instead (to avoid exception when parsing an empty csv file)
             if os.path.getsize("./data/{}.csv".format(method_filename)) > 0:
                 return pd.read_csv("./data/{}.csv".format(method_filename), header=None, index_col=None, escapechar="|")
@@ -134,8 +133,8 @@ class TestMethodMismatchIdentification:
         t1 = soup.find("div", {"id":"ProductSearch"}).find("div", {"class":"k-grid-content"}).find("table").find("tbody")
 
         # Send result table's html to a file for debugging purposes
-        with open("searchresults.html", "w") as file:
-            file.write(str(t1.prettify()))
+        # with open("searchresults.html", "w") as file:
+        #     file.write(str(t1.prettify()))
 
         # Transcribe the html table into a dataframe
         tbl_list = []
@@ -159,7 +158,6 @@ class TestMethodMismatchIdentification:
         temp_df.to_csv("./data/{}.csv".format(method.replace(":","..")), header=None, index=None, escapechar="|")
         self.cached_list.append(method)
         print("")
-        # print("{} added to cached_list".format(method.replace(":","..")))
 
         return temp_df
 
@@ -169,8 +167,6 @@ class TestMethodMismatchIdentification:
         """
         if recursion_level == 0:
             counter.increment()
-        if counter.count == 97:
-            ipdb.set_trace()
 
         # limit is used to check how many total iterations are needed
         # counter.count tracks how many of those iterations have already been completed
@@ -238,6 +234,8 @@ class TestMethodMismatchIdentification:
         return "you should never reach this part of obtain_id()"
 
     def refine_search(self, s):
+        """
+        """
 
         cl = re.compile("^(.+)\s[cC][lL]\s.+$").match(s) # BS EN 1744-1 Cl 15.3
         bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
@@ -282,7 +280,7 @@ class TestMethodMismatchIdentification:
 
     def filter_and_verify_multiple_entries(self, res, test_item, test_method):
         """
-        Accepts a dataframe ('res')
+        Accepts a dataframe 'res'
         Filters that dataframe by items that match the test_item
         res.iloc[x,0]: res_id
         res.iloc[x,1]: res_item
@@ -319,7 +317,7 @@ class TestMethodMismatchIdentification:
                 stringg = self.dump_tuples(all_entries)
                 return stringg
             else: # len(partial matches) == 0
-                return "Searched for \"{}\" but no item matches \"{}\" exactly".format(test_method, test_item)
+                return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(all_entries), test_item)
 
     def dump_tuples(self, listt):
         stringg = ""
@@ -341,9 +339,7 @@ class TestMethodMismatchIdentification:
                 )
 
         # export the resultant dataframe to excel
-        # self.input_df.to_excel("./df1.xlsx", header=None, index=None)
-        # self.input_df.to_excel("./df2.xlsx", header=None, index=None)
-        self.input_df.to_excel("./dftemp.xlsx", header=None, index=None)
+        self.input_df.to_excel("./Output.xlsx", header=None, index=None)
 
 if __name__ == '__main__':
     tmmi = TestMethodMismatchIdentification()

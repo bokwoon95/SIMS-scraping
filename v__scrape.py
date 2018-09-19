@@ -1,8 +1,8 @@
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 argglobal
 if bufexists('~/Documents/SIMS-scraping/scrape.py') | buffer ~/Documents/SIMS-scraping/scrape.py | else | edit ~/Documents/SIMS-scraping/scrape.py | endif
-xmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  1)
 nmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  0)
+xmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  1)
 nmap <buffer> <expr> @ peekaboo#peek(v:count1, '@', 0)
 imap <buffer> <expr>  peekaboo#peek(1, "\",  0)
 setlocal keymap=
@@ -115,27 +115,29 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-24,48fold
-50,58fold
-60,61fold
-63,91fold
-93,164fold
-166,238fold
-240,260fold
-262,281fold
-283,322fold
-324,328fold
-330,346fold
-50
+23,47fold
+49,57fold
+59,60fold
+62,90fold
+92,162fold
+164,234fold
+236,258fold
+260,279fold
+281,320fold
+322,326fold
+328,342fold
+281
 normal! zo
-60
+322
 normal! zo
-let s:l = 52 - ((44 * winheight(0) + 23) / 46)
+328
+normal! zo
+let s:l = 284 - ((261 * winheight(0) + 22) / 45)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-52
-normal! 079|
+284
+normal! 010|
 let &so = s:so_save | let &siso = s:siso_save
 doautoall SessionLoadPost
 " vim: set ft=vim :
