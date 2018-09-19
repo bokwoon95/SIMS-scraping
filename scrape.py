@@ -94,7 +94,7 @@ class TestMethodMismatchIdentification:
         # if cached results for the method search already exists, return it instead of doing the search again
         if method_filename in self.cached_list:
             print("")
-            print("{} already exists in cached_list".format(method_filename))
+            # print("{} already exists in cached_list".format(method_filename))
             # if the csv file is empty, return an empty dataframe instead (to avoid exception when parsing an empty csv file)
             if os.path.getsize("./data/{}.csv".format(method_filename)) > 0:
                 return pd.read_csv("./data/{}.csv".format(method_filename), header=None, index_col=None, escapechar="|")
@@ -152,18 +152,21 @@ class TestMethodMismatchIdentification:
         temp_df.to_csv("./data/{}.csv".format(method.replace(":","..")), header=None, index=None, escapechar="|")
         self.cached_list.append(method)
         print("")
-        print("{} added to cached_list".format(method.replace(":","..")))
+        # print("{} added to cached_list".format(method.replace(":","..")))
 
         return temp_df
 
-    def obtain_id(self, test_id, test_item, test_method, counter):
+    def obtain_id(self, test_id, test_item, test_method, counter, recursion_level=0):
         """
         Searches for test_method and heuristically decides which is the correct test_id from the results.
         """
-        counter.increment()
+        if recursion_level == 0:
+            counter.increment()
+
+        limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
 
         # If limit is non-zero, stop searching when the counter hits the limit
-        # This is to avoid seraching the entire document while developing since the web searches can be quite slow
+        # This is to avoid searching the entire document during testing since the web searches can be quite slow
         if counter.limit>0 and counter.count>counter.limit:
             return "blank"
 
@@ -175,19 +178,24 @@ class TestMethodMismatchIdentification:
 
         # print("Searching for \"{}\" | \"{}\"".format(test_method.strip(), test_item.strip()))
         if res.shape[0] == 0:
-            print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\""
-                    .format(
-                        counter.count
-                        ,counter.limit if counter.limit>0 else self.input_df.shape[0]
-                        ,test_method.strip()
-                        ,self.refine_search(test_method.strip())))
-            test_method = self.refine_search(test_method.strip())
+            if recursion_level != 0:
+                print("[{}/{}] Refined search of \"{}\" still had no hits".format(counter.count, limit, test_method.strip()))
+                return "Refined search still had no hits"
+            else:
+                print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\""
+                        .format(
+                            counter.count
+                            ,limit
+                            ,test_method.strip()
+                            ,self.refine_search(test_method.strip())))
+                test_method_refined = self.refine_search(test_method.strip())
+                return self.obtain_id(test_id, test_item, test_method_refined, counter, recursion_level=recursion_level+1)
 
         # print progress
         print("[{}/{}] hits: {} ({},{})"
                 .format(
                     counter.count
-                    ,counter.limit if counter.limit>0 else self.input_df.shape[0]
+                    ,limit
                     ,res.shape[0]
                     ,test_method.strip()
                     ,test_item.strip()))
@@ -195,10 +203,10 @@ class TestMethodMismatchIdentification:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
             print(res)
 
-        if res.shape[0] == 0:
-            print("Refined search still had no hits")
-            return "Refined search still had no hits"
-        elif res.shape[0] == 1:
+        # if res.shape[0] == 0:
+        #     print("Refined search still had no hits")
+        #     return "Refined search still had no hits"
+        if res.shape[0] == 1:
             return self.verify_single_entry(res.iloc[0], test_item)
         else: # res.shape[0] > 1
             res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
@@ -208,12 +216,12 @@ class TestMethodMismatchIdentification:
             if res_EXACT_method.shape[0] == 1:
                 return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
             else:
-                return self.filter_multiple_entries(res_EXACT_method, test_item, counter.count)
+                return self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, counter.count)
         print("you should never reach this part of obtain_id()")
         return "you should never reach this part of obtain_id()"
 
     def refine_search(self, s):
-        return s[0:-2]
+        return s
 
     def verify_single_entry(self, srs, test_item):
         """
@@ -236,7 +244,7 @@ class TestMethodMismatchIdentification:
         print("You should never reach this part of verify_single_entry()")
         return "You should never reach this part of verify_single_entry()"
 
-    def filter_multiple_entries(self, res, test_item, count):
+    def filter_and_verify_multiple_entries(self, res, test_item, count):
         """
         Accepts a dataframe ('res')
         Filters that dataframe by items that match the test_item
@@ -255,16 +263,25 @@ class TestMethodMismatchIdentification:
             srs = pd.Series(perfect_matches[0])
             return self.verify_single_entry(srs, test_item)
         elif len(perfect_matches) > 1:
-            print("{} Perfect Entries".format(len(perfect_matches)))
-            return "2 many entries 4 me"
+            stringg = ""
+            for m in perfect_matches:
+                stringg+="{}:{}, ".format(m[0], m[1])
+            print("{} Perfect Matches".format(len(perfect_matches)))
+            print("{}".format(stringg))
+            return stringg[0:-2]
         else:
             if len(partial_matches) == 1:
                 srs = pd.Series(partial_matches[0])
                 return self.verify_single_entry(srs, test_item)
             elif len(partial_matches) > 1:
-                return "2 many entries 4 me"
+                stringg = ""
+                for m in partial_matches:
+                    stringg+="{}:{}, ".format(m[0], m[1])
+                print("{} Partial Matches".format(len(perfect_matches)))
+                print("{}".format(stringg))
+                return stringg[0:-2]
             else: # len(partial matches) == 0
-                return "no entries 4 me"
+                return "test_method matches exactly but no test_item matches exactly (could exist but just in different format)"
 
     def execute(self):
         counter = counter_class()
@@ -282,6 +299,7 @@ class TestMethodMismatchIdentification:
         # export the resultant dataframe to excel
         # self.input_df.to_excel("./df1.xlsx", header=None, index=None)
         # self.input_df.to_excel("./df2.xlsx", header=None, index=None)
+        self.input_df.to_excel("./dftemp.xlsx", header=None, index=None)
 
 if __name__ == '__main__':
     tmmi = TestMethodMismatchIdentification()
