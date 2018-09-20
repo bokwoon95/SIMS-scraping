@@ -304,7 +304,7 @@ class TestMethodMismatchIdentification:
             print("{} Perfect Matches".format(len(perfect_matches)))
             print("{}".format(stringg))
             return stringg
-        else:
+        else: # len(perfect matches) == 0
             if len(partial_matches) == 1:
                 srs = pd.Series(partial_matches[0])
                 return self.verify_single_entry(srs, test_item)
@@ -317,7 +317,17 @@ class TestMethodMismatchIdentification:
                 stringg = self.dump_tuples(all_entries)
                 return stringg
             else: # len(partial matches) == 0
-                return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(all_entries), test_item)
+                return self.filter_by_keywords(res, test_item, test_method)
+
+    def filter_by_keywords(self, res, test_item, test_method):
+        """
+        Accepts a dataframe 'res'
+        Filters that dataframe by items that match the test_item
+        res.iloc[x,0]: res_id
+        res.iloc[x,1]: res_item
+        res.iloc[x,2]: res_method
+        """
+        return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
 
     def dump_tuples(self, listt):
         stringg = ""

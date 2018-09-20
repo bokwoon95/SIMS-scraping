@@ -19,12 +19,14 @@ Depending on whether the res or res_EXACT_match is passed in, filter_and_verify_
     That means it has to pass the knowledge of the recursion_level down into these two functions, which must then implement some switching logic of returning either the test_method if the recursion_level is non zero and not if the recursion_level is zero.
     But I'm leery of adding even more variables to these functions because it makes the task of understanding these functions a lot harder.
     ◇ I might just leave these issues alone first unless a critical mismatch error happens
-        ◇ Until then this means that the test_methods of the test_ids found by the program might not be exactly what the test_method in the input table is
+        ◇ Until then this means that the test_methods of the test_ids found by the program might not be exactly what the input test_method is
 
 filter_and_verify_mulitple_entries(): If the perfect and partial matching of sanitized strings fail, its time to fallback on a keyword matching system.
 This is done by calling yet another function, filter_and_verify_by_keywords() [name TBD]
     Analyze the test_item string and mark out keywords that MUST exist.
     Check which item strings in the results table contains those MUST HAVE keywords, and tuple dump them all into the test_id column
+
+Try importing specific parts of packages rather than everything
 
 Maybe move the limit logic:
     limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
