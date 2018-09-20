@@ -48,8 +48,8 @@ class TestMethodMismatchIdentification:
 
     def sanitize(self, s):
         """
-        So that similar (but slightly different) strings will get 'sanitized' into a more uniform version
-        that will have a higher chance to be correctly matched together
+        'Sanitizes' strings into a more uniform version so that
+        they will have a higher chance of being matched together
         """
         s = s.lower().replace(" ", "").replace("-", "").replace(",", "").replace(":", "").replace("&","and").replace("(","").replace(")","").strip()
         # Additional sanitization rules
@@ -57,11 +57,20 @@ class TestMethodMismatchIdentification:
         return s
 
     def substring_check(self, str1, str2):
+        """Checks if either string is a substring of the other"""
         return self.sanitize(str1) in self.sanitize(str2) or self.sanitize(str2) in self.sanitize(str1)
 
     def compare_keywords(self, str1, str2):
+        """
+        Checks how many keywords in str1 are present in str2
+        Any word not inside the exclusion_list is a keyword
+        """
 
         def ssify(stringg):
+            """
+            All keywords will have an 's' appended to them if they don't already have one
+            to make comparisons between plural and singular forms match
+            """
             if stringg[-1] != "s":
                 return stringg + "s"
             return stringg
@@ -74,6 +83,38 @@ class TestMethodMismatchIdentification:
             if word in arr2:
                 i+=1
         return "{}/{}".format(i, len(arr1))
+
+    def refine_search(self, s):
+        """
+        """
+
+        cl = re.compile("^(.+)\s[cC][lL]\s.+$").match(s) # BS EN 1744-1 Cl 15.3
+        bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
+        part = re.compile("^(.+)\sPart\s.+$").match(s) # SS 73 Part 21
+        hyphen = re.compile("^([^-]+)-.+$").match(s) # BS 812-121
+        twowords = re.compile("^([A-Z0-9]+\s[A-Z0-9]+)\s.+$").match(s) # ASTM C128 Gravimetric Method
+
+        if part:
+            return part.group(1)
+        elif bracket:
+            return bracket.group(1)
+        elif cl:
+            return cl.group(1)
+        elif len(s.split()) < 2: # this ensures that there are at least two words in the string
+            return s
+        elif hyphen:
+            return hyphen.group(1)
+        elif twowords:
+            return twowords.group(1)
+        return s
+
+    def dump_tuples(self, listt):
+        stringg = ""
+        for t1 in listt:
+            for t2 in t1:
+                stringg+="{}| ".format(t2)
+            stringg = stringg[0:-2] + "  ~  "
+        return stringg[0:-5]
 
     def prep_driver(self):
         """
@@ -177,105 +218,26 @@ class TestMethodMismatchIdentification:
 
         return temp_df
 
-    def obtain_id(self, test_id, test_item, test_method, counter, recursion_level=0):
-        """
-        Searches for test_method and heuristically decides which is the correct test_id from the results.
-        """
-        if recursion_level == 0:
-            counter.increment()
-
-        # limit is used to check how many total iterations are needed
-        # counter.count tracks how many of those iterations have already been completed
-        limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
-
-        # If limit is non-zero, stop searching when the counter hits the limit
-        # This is to avoid searching the entire document during testing since the web searches can be quite slow
-        if counter.limit>0 and counter.count>counter.limit:
-            return "blank"
-
-        # if the 'test_id' column of input_df isn't already filled with a test id then do a search
-        if pd.notnull(test_id) and re.compile("[A-Z0-9]{6}").match(test_id):
-            return test_id
-        else:
-            res=self.search(test_method.strip())
-
-        # If there are 0 results, refine the test_method string and call obtain_id() again recursively. If the test_method cannot be further refined (meaning the refine_search() method returns the same string) then there really are no hits
-        if res.shape[0] == 0:
-            test_method_refined = self.refine_search(test_method.strip())
-            if test_method_refined == test_method:
-                print("[{}/{}] Search of \"{}\" had no hits".format(counter.count, limit, test_method.strip()))
-                return "Search of \"{}\" had no hits".format(test_method.strip())
-            else:
-                print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\"" .format(counter.count ,limit ,test_method.strip() ,test_method_refined))
-                return self.obtain_id(test_id, test_item, test_method_refined, counter, recursion_level=recursion_level+1)
-
-        # print progress
-        print("[{}/{}] hits: {} ({},{})" .format(counter.count ,limit ,res.shape[0] ,test_method.strip() ,test_item.strip()))
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res)
-
-        # This section decides which 
-        if res.shape[0] == 1:
-            return self.verify_single_entry(res.iloc[0], test_item)
-        else: # res.shape[0] > 1
-            res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
-            print("exact hits: {}".format(res_EXACT_method.shape[0]))
-            with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res_EXACT_method)
-            return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
-            # if res_EXACT_method.shape[0] == 0:
-            #     return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
-            # elif res_EXACT_method.shape[0] == 1:
-            #     return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
-            # else:
-            #     # If you can't find any matches for test_item in `res_EXACT_method`, search in the unfiltered `res` instead
-            #     stringg = self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method, counter)
-            #     if re.compile("Searched for \".+\" but no item matches \".+\" exactly").match(stringg):
-            #         return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
-            #     return self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method, counter)
-        print("you should never reach this part of obtain_id()")
-        return "you should never reach this part of obtain_id()"
-
-    def refine_search(self, s):
-        """
-        """
-
-        cl = re.compile("^(.+)\s[cC][lL]\s.+$").match(s) # BS EN 1744-1 Cl 15.3
-        bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
-        part = re.compile("^(.+)\sPart\s.+$").match(s) # SS 73 Part 21
-        hyphen = re.compile("^([^-]+)-.+$").match(s) # BS 812-121
-        twowords = re.compile("^([A-Z0-9]+\s[A-Z0-9]+)\s.+$").match(s) # ASTM C128 Gravimetric Method
-
-        if part:
-            return part.group(1)
-        elif bracket:
-            return bracket.group(1)
-        elif cl:
-            return cl.group(1)
-        elif len(s.split()) < 2: # this ensures that there are at least two words in the string
-            return s
-        elif hyphen:
-            return hyphen.group(1)
-        elif twowords:
-            return twowords.group(1)
-        return s
-
     def verify_single_entry(self, srs, test_item):
         """
-        res.iloc[x,0]: res_id
-        res.iloc[x,1]: res_item
-        res.iloc[x,2]: res_method
+        Takes in a single entry from a table (in the form of a pandas Series)
+        and checks if it matches the test_item
         """
+        res_id     = srs[0]
+        res_item   = srs[1]
+
         # if the test_item string matches the hit item string perfectly, return the hit id
-        if self.sanitize(srs[1]) == self.sanitize(test_item):
-            print("Perfect Match: {} | {}".format(srs[1], test_item))
-            return srs[0]
+        if self.sanitize(res_item) == self.sanitize(test_item):
+            print("Perfect Match: {} | {}".format(res_item, test_item))
+            return res_id
         # else if either of the item strings are a substring of the other, also return the hit id
-        elif self.substring_check(srs[1], test_item):
-            print("{} | {}".format(srs[1], test_item))
-            return srs[0]
+        elif self.substring_check(res_item, test_item):
+            print("{} | {}".format(res_item, test_item))
+            return res_id
         # else return the hit id anyway, followed by the hit item string for manual verification later
         else:
-            print("{} | {}".format(srs[1], test_item))
-            return "{}| {}".format(srs[0], srs[1])
+            print("{} | {}".format(res_item, test_item))
+            return "{}| {}".format(res_id, res_item)
         print("You should never reach this part of verify_single_entry()")
         return "You should never reach this part of verify_single_entry()"
 
@@ -283,6 +245,7 @@ class TestMethodMismatchIdentification:
         """
         Accepts a dataframe 'res'
         Filters that dataframe by items that match the test_item
+        Returns matching rows as a string
         """
         perfect_matches = []
         partial_matches = []
@@ -327,7 +290,7 @@ class TestMethodMismatchIdentification:
                     res_item   = res.iloc[i][1]
                     res_method = res.iloc[i][2]
 
-                    fraction = self.compare_keywords(test_item, res_item) # a string representing how many keywords appear e.g. 3/5
+                    fraction = self.compare_keywords(test_item, res_item) # a string representing how many keywords turn up e.g. 3/5
                     rgx = re.compile("(\d+)/(\d+)")
                     percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2)) # `fraction` variable expressed as a decimal
                     all_entries_detailed.append( (res_id, res_item, res_method, test_item, test_method, fraction, percentage) )
@@ -353,24 +316,56 @@ class TestMethodMismatchIdentification:
         print("You should never reach this part of filter_and_verify_multiple_entries()")
         return "You should never reach this part of filter_and_verify_multiple_entries()"
 
-    def dump_tuples(self, listt):
-        stringg = ""
-        for t1 in listt:
-            for t2 in t1:
-                stringg+="{}| ".format(t2)
-            stringg = stringg[0:-2] + "  ~  "
-        return stringg[0:-5]
+    def obtain_id(self, test_id, test_item, test_method, counter, recursion_level=0):
+        """
+        Searches for test_method and heuristically decides which is the correct test_id from the results.
+        """
+        if recursion_level == 0:
+            counter.increment()
+
+        # limit is used to check how many total iterations are needed
+        # counter.count tracks how many of those iterations have already been completed
+        limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
+
+        # If limit is non-zero, stop searching when the counter hits the limit
+        # This is to avoid searching the entire document during testing since the web searches can be quite slow
+        if counter.limit>0 and counter.count>counter.limit:
+            return "blank"
+
+        # if the 'test_id' column of input_df isn't already filled with a test id then do a search
+        if pd.notnull(test_id) and re.compile("[A-Z0-9]{6}").match(test_id):
+            return test_id
+        else:
+            res=self.search(test_method.strip())
+
+        # If there are 0 results, refine the test_method string and call obtain_id() again recursively. If the test_method cannot be further refined (meaning the refine_search() method returns the same string) then there really are no hits
+        if res.shape[0] == 0:
+            test_method_refined = self.refine_search(test_method.strip())
+            if test_method_refined == test_method:
+                print("[{}/{}] Search of \"{}\" had no hits".format(counter.count, limit, test_method.strip()))
+                return "Search of \"{}\" had no hits".format(test_method.strip())
+            else:
+                print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\"" .format(counter.count ,limit ,test_method.strip() ,test_method_refined))
+                return self.obtain_id(test_id, test_item, test_method_refined, counter, recursion_level=recursion_level+1)
+
+        # print progress
+        print("[{}/{}] hits: {} ({},{})" .format(counter.count ,limit ,res.shape[0] ,test_method.strip() ,test_item.strip()))
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res)
+
+        if res.shape[0] == 1:
+            return self.verify_single_entry(res.iloc[0], test_item)
+        else: # res.shape[0] > 1
+            res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
+            print("exact hits: {}".format(res_EXACT_method.shape[0]))
+            with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res_EXACT_method)
+            return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
+        print("you should never reach this part of obtain_id()")
+        return "you should never reach this part of obtain_id()"
 
     def execute(self):
         counter = counter_class()
         self.input_df['test_id'] = self.input_df.apply(
-                lambda row:
-                self.obtain_id(
-                    row['test_id']
-                    ,row['test_item']
-                    ,row['test_method']
-                    ,counter
-                    )
+                lambda row: self.obtain_id(row['test_id'], row['test_item'], row['test_method'], counter)
                 ,axis=1
                 )
 
@@ -380,7 +375,3 @@ class TestMethodMismatchIdentification:
 if __name__ == '__main__':
     tmmi = TestMethodMismatchIdentification()
     tmmi.execute()
-else:
-    import scrape
-    # tmmi = scrape.TestMethodMismatchIdentification()
-    # tmmi.execute()
