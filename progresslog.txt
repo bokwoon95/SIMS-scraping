@@ -21,10 +21,17 @@ Depending on whether the res or res_EXACT_match is passed in, filter_and_verify_
     ◇ I might just leave these issues alone first unless a critical mismatch error happens
         ◇ Until then this means that the test_methods of the test_ids found by the program might not be exactly what the input test_method is
 
-filter_and_verify_mulitple_entries(): If the perfect and partial matching of sanitized strings fail, its time to fallback on a keyword matching system.
-This is done by calling yet another function, filter_and_verify_by_keywords() [name TBD]
-    Analyze the test_item string and mark out keywords that MUST exist.
-    Check which item strings in the results table contains those MUST HAVE keywords, and tuple dump them all into the test_id column
+Judge keyword matching by 3 metrics:
+    1) How many keywords exist
+    2) How closely the order matches for these keywords
+    3) Are there any dealbreaker mismatches?
+
+Given string A and string B, how do I check how many keywords in A exist in B?
+    extract all keywords from A (by removing 'and', '&', 'of, etc) and store keywords in a list
+    iterate over that keyword list and how many keywords manage to turn up in B
+
+Making script idempotent, so it doesn't matter if it's running on its input or output files, the result will be the same. 
+    The id column regex check currently only involves an id regex, it should include any string that starts with 'Search' as well
 
 Try importing specific parts of packages rather than everything
 
