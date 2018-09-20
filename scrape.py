@@ -213,23 +213,24 @@ class TestMethodMismatchIdentification:
         print("[{}/{}] hits: {} ({},{})" .format(counter.count ,limit ,res.shape[0] ,test_method.strip() ,test_item.strip()))
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res)
 
-        # res.shape[0] should never be 0 here as it should have been
+        # This section decides which 
         if res.shape[0] == 1:
             return self.verify_single_entry(res.iloc[0], test_item)
         else: # res.shape[0] > 1
             res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
             print("exact hits: {}".format(res_EXACT_method.shape[0]))
             with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res_EXACT_method)
-            if res_EXACT_method.shape[0] == 0:
-                return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
-            elif res_EXACT_method.shape[0] == 1:
-                return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
-            else:
-                # If you can't find any matches for test_item in `res_EXACT_method`, search in the unfiltered `res` instead
-                stringg = self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method, counter)
-                if re.compile("Searched for \".+\" but no item matches \".+\" exactly").match(stringg):
-                    return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
-                return self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method, counter)
+            return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
+            # if res_EXACT_method.shape[0] == 0:
+            #     return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
+            # elif res_EXACT_method.shape[0] == 1:
+            #     return self.verify_single_entry(res_EXACT_method.iloc[0], test_item)
+            # else:
+            #     # If you can't find any matches for test_item in `res_EXACT_method`, search in the unfiltered `res` instead
+            #     stringg = self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method, counter)
+            #     if re.compile("Searched for \".+\" but no item matches \".+\" exactly").match(stringg):
+            #         return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
+            #     return self.filter_and_verify_multiple_entries(res_EXACT_method, test_item, test_method, counter)
         print("you should never reach this part of obtain_id()")
         return "you should never reach this part of obtain_id()"
 
@@ -274,7 +275,7 @@ class TestMethodMismatchIdentification:
         # else return the hit id anyway, followed by the hit item string for manual verification later
         else:
             print("{} | {}".format(srs[1], test_item))
-            return "{}:{}".format(srs[0], srs[1])
+            return "{}| {}".format(srs[0], srs[1])
         print("You should never reach this part of verify_single_entry()")
         return "You should never reach this part of verify_single_entry()"
 
@@ -326,14 +327,14 @@ class TestMethodMismatchIdentification:
                     res_item   = res.iloc[i][1]
                     res_method = res.iloc[i][2]
 
-                    fraction = self.compare_keywords(test_item, res_item)
+                    fraction = self.compare_keywords(test_item, res_item) # a string representing how many keywords appear e.g. 3/5
                     rgx = re.compile("(\d+)/(\d+)")
-                    percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2))
+                    percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2)) # `fraction` variable expressed as a decimal
                     all_entries_detailed.append( (res_id, res_item, res_method, test_item, test_method, fraction, percentage) )
 
                 df = pd.DataFrame(all_entries_detailed)
 
-                max_percentage = max(df[6])
+                max_percentage = max(df[6]) # the highest number of keyword matches in the table
                 keyword_matches = []
                 if max_percentage == 0:
                     return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
@@ -344,7 +345,7 @@ class TestMethodMismatchIdentification:
                         res_method = df.iloc[i][2]
                         percentage = df.iloc[i][6]
                         if percentage == max_percentage:
-                            keyword_matches.append( (res_id, res_item) )
+                            keyword_matches.append( (res_id, res_item, res_method) )
                     stringg = self.dump_tuples(keyword_matches)
                     print("{} Keyword Matches".format(len(keyword_matches)))
                     print("{}".format(stringg))
@@ -354,9 +355,11 @@ class TestMethodMismatchIdentification:
 
     def dump_tuples(self, listt):
         stringg = ""
-        for t in listt:
-            stringg+="{}:{}|  ".format(t[0], t[1])
-        return stringg[0:-3]
+        for t1 in listt:
+            for t2 in t1:
+                stringg+="{}| ".format(t2)
+            stringg = stringg[0:-2] + "  ~  "
+        return stringg[0:-5]
 
     def execute(self):
         counter = counter_class()

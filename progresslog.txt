@@ -21,12 +21,12 @@ Depending on whether the res or res_EXACT_match is passed in, filter_and_verify_
     ◇ I might just leave these issues alone first unless a critical mismatch error happens
         ◇ Until then this means that the test_methods of the test_ids found by the program might not be exactly what the input test_method is
 
-Judge keyword matching by 3 metrics:
-    1) How many keywords exist
-    2) How closely the order matches for these keywords
-    3) Are there any dealbreaker mismatches?
+✓ Judge keyword matching by 3 metrics:
+    1) How many keywords exist ✓
+    2) How closely the order matches for these keywords (Don't care, dump everything)
+    3) Are there any dealbreaker mismatches? (Don't care, dump everything)
 
-Given string A and string B, how do I check how many keywords in A exist in B?
+✓ Given string A and string B, how do I check how many keywords in A exist in B?
     extract all keywords from A (by removing 'and', '&', 'of, etc) and store keywords in a list
     iterate over that keyword list and how many keywords manage to turn up in B
 
@@ -44,5 +44,6 @@ Implement smart column matching for the input excel file so that it can accept a
 Try to get python script to run from venv without installing python on the computer
 
 Is verify_single_entry() really necessary? Can you reuse the general logic for filter_and_verify_multiple_entries() instead? Like using a list, then comparing its contents?
+    Right now it's too tightly coupled for me to feel safe refactoring it away. It it ain't broke why fix
 
 The final goal would be to extend this to scraping for units and their prices (or lack thereof) followed by automated test creation if they are missing. Then it would truly be an end-to-end solution.
