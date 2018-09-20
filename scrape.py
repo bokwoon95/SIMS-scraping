@@ -199,44 +199,27 @@ class TestMethodMismatchIdentification:
         else:
             res=self.search(test_method.strip())
 
-        #
+        # If there are 0 results, refine the test_method string and call obtain_id() again recursively. If the test_method cannot be further refined (meaning the refine_search() method returns the same string) then there really are no hits
         if res.shape[0] == 0:
             test_method_refined = self.refine_search(test_method.strip())
             if test_method_refined == test_method:
                 print("[{}/{}] Search of \"{}\" had no hits".format(counter.count, limit, test_method.strip()))
                 return "Search of \"{}\" had no hits".format(test_method.strip())
             else:
-                print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\""
-                        .format(
-                            counter.count
-                            ,limit
-                            ,test_method.strip()
-                            ,test_method_refined
-                            )
-                        )
+                print("[{}/{}] Initial search of \"{}\" yielded 0 hits. Refining search to \"{}\"" .format(counter.count ,limit ,test_method.strip() ,test_method_refined))
                 return self.obtain_id(test_id, test_item, test_method_refined, counter, recursion_level=recursion_level+1)
 
         # print progress
-        print("[{}/{}] hits: {} ({},{})"
-                .format(
-                    counter.count
-                    ,limit
-                    ,res.shape[0]
-                    ,test_method.strip()
-                    ,test_item.strip()))
-        # print hit results
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
-            print(res)
+        print("[{}/{}] hits: {} ({},{})" .format(counter.count ,limit ,res.shape[0] ,test_method.strip() ,test_item.strip()))
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res)
 
         # res.shape[0] should never be 0 here as it should have been
-        # handled by the `if res.shape[0] == 0` condition on top
         if res.shape[0] == 1:
             return self.verify_single_entry(res.iloc[0], test_item)
         else: # res.shape[0] > 1
             res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
             print("exact hits: {}".format(res_EXACT_method.shape[0]))
-            with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1):
-                print(res_EXACT_method)
+            with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res_EXACT_method)
             if res_EXACT_method.shape[0] == 0:
                 return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
             elif res_EXACT_method.shape[0] == 1:
@@ -336,7 +319,6 @@ class TestMethodMismatchIdentification:
                 stringg = self.dump_tuples(all_entries)
                 return stringg
             else: # len(partial matches) == 0
-                # return self.filter_by_keywords(res, test_item, test_method, counter)
                 all_entries_detailed = []
                 for i in range(len(res)):
 
@@ -369,42 +351,6 @@ class TestMethodMismatchIdentification:
                     return stringg
         print("You should never reach this part of filter_and_verify_multiple_entries()")
         return "You should never reach this part of filter_and_verify_multiple_entries()"
-
-    # def filter_by_keywords(self, res, test_item, test_method, counter):
-    #     """
-    #     """
-    #     all_entries_detailed = []
-    #     for i in range(len(res)):
-
-    #         res_id     = res.iloc[i][0]
-    #         res_item   = res.iloc[i][1]
-    #         res_method = res.iloc[i][2]
-
-    #         fraction = self.compare_keywords(test_item, res_item)
-    #         rgx = re.compile("(\d+)/(\d+)")
-    #         percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2))
-    #         all_entries_detailed.append( (res_id, res_item, res_method, test_item, test_method, fraction, percentage) )
-
-    #     df = pd.DataFrame(all_entries_detailed)
-
-    #     max_percentage = max(df[6])
-    #     keyword_matches = []
-    #     if max_percentage == 0:
-    #         return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
-    #     else: # max_percentage != 0
-    #         for i in range(len(df)):
-    #             res_id     = df.iloc[i][0]
-    #             res_item   = df.iloc[i][1]
-    #             res_method = df.iloc[i][2]
-    #             percentage = df.iloc[i][6]
-    #             if percentage == max_percentage:
-    #                 keyword_matches.append( (res_id, res_item) )
-    #         stringg = self.dump_tuples(keyword_matches)
-    #         print("{} Keyword Matches".format(len(keyword_matches)))
-    #         print("{}".format(stringg))
-    #         return stringg
-    #     print("You should never reach this part of filter_by_keywords()")
-    #     return "You should never reach this part of filter_by_keywords()"
 
     def dump_tuples(self, listt):
         stringg = ""
