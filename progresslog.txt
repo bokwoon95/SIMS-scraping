@@ -30,6 +30,12 @@ Depending on whether the res or res_EXACT_match is passed in, filter_and_verify_
     extract all keywords from A (by removing 'and', '&', 'of, etc) and store keywords in a list
     iterate over that keyword list and how many keywords manage to turn up in B
 
+>>> For the LOVE of God, make an excel macro that can resize columns and set wrap for every column in the table
+
+Implement smart column matching for the input excel file so that it can accept a wider variety of input table formats
+
+Try to get python script to run from venv without installing python on the computer
+
 Making script idempotent, so it doesn't matter if it's running on its input or output files, the result will be the same. 
     The id column regex check currently only involves an id regex, it should include any string that starts with 'Search' as well
 
@@ -39,11 +45,7 @@ Maybe move the limit logic:
     limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
 into the counter object itself? So every invocation of obtain_id() doesn't have to recalculate this. Also it's less complexity in obtain_id() itself.
 
-Implement smart column matching for the input excel file so that it can accept a wider variety of input table formats
-
-Try to get python script to run from venv without installing python on the computer
-
-Is verify_single_entry() really necessary? Can you reuse the general logic for filter_and_verify_multiple_entries() instead? Like using a list, then comparing its contents?
+(WON'T FIX) Is verify_single_entry() really necessary? Can you reuse the general logic for filter_and_verify_multiple_entries() instead? Like using a list, then comparing its contents?
     Right now it's too tightly coupled for me to feel safe refactoring it away. It it ain't broke why fix
 
 The final goal would be to extend this to scraping for units and their prices (or lack thereof) followed by automated test creation if they are missing. Then it would truly be an end-to-end solution.
