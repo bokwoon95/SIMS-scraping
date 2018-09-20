@@ -78,6 +78,8 @@ class TestMethodMismatchIdentification:
         exclusion_list = ['', 'and', '&', 'of', 'or', 'the']
         arr1 = [ssify(self.sanitize(x)) for x in str1.split() if self.sanitize(x) not in exclusion_list]
         arr2 = [ssify(self.sanitize(x)) for x in str2.split() if self.sanitize(x) not in exclusion_list]
+        # arr1 = [ssify(self.sanitize(x)) for x in re.split("\s-,;:()", str1) if self.sanitize(x) not in exclusion_list]
+        # arr2 = [ssify(self.sanitize(x)) for x in re.split("\s-,;:()", str2) if self.sanitize(x) not in exclusion_list]
         i=0
         for word in arr1:
             if word in arr2:

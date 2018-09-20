@@ -30,14 +30,19 @@ Depending on whether the res or res_EXACT_match is passed in, filter_and_verify_
     extract all keywords from A (by removing 'and', '&', 'of, etc) and store keywords in a list
     iterate over that keyword list and how many keywords manage to turn up in B
 
+✓ Making script idempotent, so it doesn't matter if it's running on its input or output files, the result will be the same. 
+    The id column regex check currently only involves an id regex, it should include any string that starts with 'Search' as well
+
 >>> For the LOVE of God, make an excel macro that can resize columns and set wrap for every column in the table
 
 Implement smart column matching for the input excel file so that it can accept a wider variety of input table formats
 
 Try to get python script to run from venv without installing python on the computer
 
-Making script idempotent, so it doesn't matter if it's running on its input or output files, the result will be the same. 
-    The id column regex check currently only involves an id regex, it should include any string that starts with 'Search' as well
+Why do the following lines
+    arr1 = [ssify(self.sanitize(x)) for x in re.split("\s-,;:()", str1) if self.sanitize(x) not in exclusion_list]
+    arr2 = [ssify(self.sanitize(x)) for x in re.split("\s-,;:()", str2) if self.sanitize(x) not in exclusion_list]
+    fuck everything up? Searches that previously returned a definite answer or at least a string of answers suddenly returned the 'Search had X hits but nothing matched Y' string instead
 
 Try importing specific parts of packages rather than everything
 
