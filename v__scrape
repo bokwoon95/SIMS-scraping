@@ -1,6 +1,6 @@
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 argglobal
-if bufexists('~\Documents\SIMS-scraping\scrape.py') | buffer ~\Documents\SIMS-scraping\scrape.py | else | edit ~\Documents\SIMS-scraping\scrape.py | endif
+if bufexists('~/Documents/SIMS-scraping/scrape.py') | buffer ~/Documents/SIMS-scraping/scrape.py | else | edit ~/Documents/SIMS-scraping/scrape.py | endif
 xmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  1)
 nmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  0)
 nmap <buffer> <expr> @ peekaboo#peek(v:count1, '@', 0)
@@ -9,7 +9,6 @@ setlocal keymap=
 setlocal noarabic
 setlocal autoindent
 setlocal backupcopy=
-setlocal balloonexpr=netrw#BalloonHelp()
 setlocal nobinary
 setlocal breakindent
 setlocal breakindentopt=
@@ -28,7 +27,6 @@ setlocal concealcursor=inc
 setlocal conceallevel=2
 setlocal completefunc=
 setlocal nocopyindent
-setlocal cryptmethod=
 setlocal nocursorbind
 setlocal nocursorcolumn
 setlocal nocursorline
@@ -87,9 +85,9 @@ setlocal noreadonly
 setlocal norelativenumber
 setlocal norightleft
 setlocal rightleftcmd=search
+setlocal scrollback=-1
 setlocal noscrollbind
 setlocal shiftwidth=4
-setlocal noshortname
 setlocal signcolumn=auto
 setlocal nosmartindent
 setlocal softtabstop=4
@@ -107,38 +105,35 @@ endif
 setlocal tabstop=4
 setlocal tagcase=
 setlocal tags=
-setlocal termwinkey=
-setlocal termwinscroll=10000
-setlocal termwinsize=
 setlocal textwidth=0
 setlocal thesaurus=
 setlocal noundofile
 setlocal undolevels=-123456
+setlocal winhighlight=
 setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
+12,19fold
 23,47fold
 49,57fold
 59,61fold
 63,85fold
-87,109fold
-111,117fold
-119,147fold
-149,219fold
-221,242fold
-244,317fold
-319,366fold
-368,376fold
-149
-normal! zo
-let s:l = 156 - ((107 * winheight(0) + 20) / 41)
+87,138fold
+140,146fold
+148,176fold
+178,250fold
+252,273fold
+275,348fold
+350,396fold
+398,406fold
+let s:l = 20 - ((19 * winheight(0) + 21) / 42)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-156
-normal! 0213|
+20
+normal! 0
 let &so = s:so_save | let &siso = s:siso_save
 doautoall SessionLoadPost
 " vim: set ft=vim :

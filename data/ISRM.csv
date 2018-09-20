@@ -1,0 +1,13 @@
+SPL159,Average Indirect Tensile Strength,ISRM
+CON137,Compressive strength,ISRM
+T01031,"Density, Porosity & Water Content",ISRM
+SPL153,Hardness in Mohs,ISRM
+T00180,Petrographic Examination,ISRM
+ASO159,Point Load Index,ISRM 85
+RCK002,Point Load Index,ISRM 85
+RCK001,Rock Density,ISRM
+ASO204,Rock Density,ISRM
+RCK012,Slake Durability Test,ISRM Suggested Method
+RCK013,Swelling Pressure,ISRM Suggested Method
+RCK011,Total Quartz Content,ISRM Suggested Method
+ASO200,Uniaxial Compressive Strength (UCS,ISRM 1985

@@ -1,0 +1,95 @@
+SSS028,Acid Soluble Sulphate Content,BS 1377-3 Cl 5.2 & 5.5
+ASO061,Angle of Shearing Resistance (Direct Shear Box Test),BS 1377-7 Cl 4
+ASO120,California Bearing Ratio (Lab Test- Soaked or Unsoaked),BS 1377-4
+SSS006,Carbonate,BS 1377: P3
+T01028,Carbonate Content,BS 1377-3 Cl 6
+CAL020,CBR Proving Ring: Force Measurement (Accuracy),BS 1377-1
+T00355,CBR Site Sampling (Min 3 Samples Per Trip),"BS 1377-4, 7"
+SSS022,Chloride (Acid soluble),BS 1377: P3
+SSS023,Chloride (Water Soluble),BS 1377-3
+PWA426,Chloride Content,BS 1377 Part 3
+WWW286,Chloride Content,BS 1377 Part 3
+CHM039,Chloride content,BS 1377 : Part 3 : 1990
+ASO128,Compaction Test (Dry Density / Moisture Content),BS 1377-4
+ASO207,Compaction Test (Maximum and Minimum Dry Density),BS 1377 P4
+T01094,Compaction Test (Maximum and Minimum Dry Density),BS 1377-4 Cl 4
+SSS267,Conductivity,BS 1377 Part 3 Method 8
+ASO249,Consolidate Undrained (CU) Triaxial [multistage],BS 1377 P8
+ASO218,Consolidated Undrained (CU) Triaxial,BS 1377-8
+T01025,Consolidated-Drained Triaxial Compression Test (CD),"BS 1377-8, Cl 8"
+ASO217,Consolidation Test (oedometer),BS 1377-5
+T01026,Constant Head Triaxial Permeability Test,"BS 1377-6, Cl 6"
+ASO056,Determination of density,BS 1377-2 Cl 7
+ASO093,Determination of permeability by the constant-head method,BS 1377-5 Cl 5
+ASO219,"Direct Shear Test (small box, 60x60mm)",BS 1377-7
+ASO094,Dispersibility,BS 1377-5
+ASO205,Electrical Resistivity of Soil,BS 1377-9
+ASO212,Electrical Resistivity of Soil,"BS 1377-9, CI 10.4"
+ASO250,Falling Head Permeability Test,BS 1377 / K head
+ASO133,Field Density,BS 1377-9.2.2
+ASO243,Fines Content (Percentage of Fines Passing 0.063mm),"BS 1377-2, 9.2"
+ASO024,Gypsum Content,BS 1377:Part3
+ASO138,In-situ CBR,BS 1377-9
+ASO010,In-situ Density & Moisture-Nuclear,BS 1377-9
+ASO144,Linear Shrinkage,BS 1377-2 Cl 6.5
+ASO237,Liquid Limit,BS 1377-2
+ASO142,Liquid Plastic Limit,"BS 1377-2, Cl  4.5"
+ASO141,"Liquid, Plastic Limit & Plasticity Index",BS 1377-2 Cl 4.3 & 5
+CAL021,Load Cells: Force Measurement (Accuracy),BS 1377-1
+SSS014,Loss on Ignition,BS 1377: P3
+T00120,Loss on Ignition,BS 1377-3 Cl 4
+ASO151,Minimum and Maximum Voids Ratio,BS 1377-4
+ASO145,Moisture Content,BS 1377-2
+SSS016,Moisture content (LOD) @ 105 C,BS 1377: P3
+T00353,Nuclear Density Gauge Test (Min 3 Points Per Trip),"BS 1377-9, CI 2.5"
+T00356,On-Site CBR Test with CBR Readout (Reaction Load by Client),"BS 1377-9,  4.3"
+ASO063,One-dimensional Consolidation,BS 1377-5
+CHM044,Organic Matter,BS 1377-3 Cl 3
+T00204,Organic Matter Content,BS 1377-3
+SSS080,Organic Matter Content,BS 1377: P3
+ASO068,Particle Density,"BS 1377-2, Cl 8"
+ASO154,Particle Density of Soil,BS 1377:2:8.2
+ASO163,Particle Size Distribution (Sieve Analysis + Hydrometer),BS 1377-2
+ASO162,Particle Size Distribution (Sieve Analysis),BS 1377-2
+ASO107,Passing 63 micron,BS 1377:2
+T01203,Percentage of Swell,BS 1377-4
+SSS002,pH,BS 1377: P3
+ASO076,pH,BS 1377-3
+CON230,pH (Alkalinity) of Concrete Substrate,BS 1377-3
+WWW386,pH Value,BS 1377
+CWA027,pH Value,BS 1377
+ASO238,Plastic Limit,BS 1377-2
+ASO011,Plate Load Test,BS 1377-9
+T00291,"Plate Loading Test (Double Cycle, 300mm Diameter Plate, Max Pressure up to 600 kPa)","BS 1377-9, 4.1"
+T00290,"Plate Loading Test (Single Cycle, 300mm Diameter Plate, Max Pressure up to 600 kPa)","BS 1377-9, 4.1"
+T00292,"Plate Loading Test (Triple cycle, 300mm Diameter Plate, Max Pressure up to 1250 kPa)","BS 1377-9, 4.1"
+T00617,Plate Loading Test (Two Load),"BS 1377-9, 4.1"
+T00626,"Plate Loading Test (Two Load, Subsequent Point)",BS 1377-9.4.1
+CHE003,Redox Potential,BS 1377
+ASO208,Relative Density,BS 1377-4 Cl 4.6
+ASO117,Resistivity,"BS 1377-3, Cl 10.4"
+T01161,Sand Replacement Test,"BS 1377-9, Cl 2.1"
+T00354,Sand Replacement Test (Min 3 Points Per Trip),"BS 1377-9, Cl 2.1"
+ASO060,Shear Strength -Drained Cond,"BS 1377-7, Cl 5"
+ASO059,Shear Strength-Drained Cond,BS 1377-7:Cl 4
+ASO062,Shear Strength-Undrained Cond,BS 1377-7:Cl5
+T01053,Soil Classification Test,BS 1377-2
+ASO252,Soil Resistivity (Lab Method/Small Box,BS 1377-2
+CHM038,Soils - Carbonate Content,BS 1377-3:1990 Cl 6
+SSS029,Sulphate (Water Soluble),BS 1377: P3
+CHM047,Sulphate content,BS 1377 : Part 3 : 1990
+PWA425,Sulphate Content,BS 1377 Part 3
+WWW285,Sulphate Content,BS 1377 Part 3
+ASO092,Swelling&Collapse Characteristics,BS 1377-5
+SSS392,Total Acid Soluble Salt Content,BS 1377 P3
+WWW385,Total Dissolved Solids (TDS),BS 1377
+CWA026,Total Dissolved Solids (TDS),BS 1377-3 Cl 8
+SSS393,Total Water Soluble Salt Content,BS 1377 P3
+SSS199,Total Water Soluble Salts,BS 1377: P3
+ASO058,Unconfined Compressive Strength,BS 1377-7:Cl3
+ASO028,Unconfined compressive strength,BS 1377:7
+T01055,Unconsolidated-Undrained Triaxial compression test (UU),"BS 1377-7, Cl 8"
+CHM051,Water Soluble Chloride,BS 1377:3:7
+ASO020,Water Soluble Salt,BS 1377-3
+CHM050,Water Soluble Sulphate,BS 1377:3:5
+T00130,Water-Soluble Sulphate Content,BS 1377-3

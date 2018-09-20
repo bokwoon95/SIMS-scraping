@@ -88,24 +88,53 @@ class TestMethodMismatchIdentification:
         """
         """
 
-        cl = re.compile("^(.+)\s[cC][lL]\s.+$").match(s) # BS EN 1744-1 Cl 15.3
-        bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
-        part = re.compile("^(.+)\sPart\s.+$").match(s) # SS 73 Part 21
-        hyphen = re.compile("^([^-]+)-.+$").match(s) # BS 812-121
-        twowords = re.compile("^([A-Z0-9]+\s[A-Z0-9]+)\s.+$").match(s) # ASTM C128 Gravimetric Method
-
+        part = re.compile("^(?i)(.+)\sPart\s.+$").match(s, re.IGNORECASE) # SS 73 Part 21
         if part:
             return part.group(1)
-        elif bracket:
-            return bracket.group(1)
-        elif cl:
-            return cl.group(1)
-        elif len(s.split()) < 2: # this ensures that there are at least two words in the string
-            return s
-        elif hyphen:
-            return hyphen.group(1)
-        elif twowords:
+
+        bracket = re.compile("^(.+)\s\(.+\)$").match(s) # ATM D546 (ASTM D242)
+        if bracket:
+          return bracket.group(1)
+
+        cl = re.compile("(?i)^(.+)\sCl\s.+$").match(s) # BS EN 1744-1 Cl 15.3
+        if cl:
+          return cl.group(1)
+
+        annex = re.compile("(?i)^(.+)\sAnnex\s.+$").match(s) # BS EN 1926 Annex A
+        if annex:
+            return annex.group(1)
+
+        method = re.compile("(?i)^(.+)\sMethod\s.+$").match(s) # ASTM D7012 Method C
+        if method:
+            return method.group(1)
+
+        head = re.compile("(?i)^(.+)\sHead\s.+$").match(s) # K H Head:Vol.2, Cl 10
+        if head:
+            return head.group(1)
+
+        vol = re.compile("(?i)^(.+)\sVol\s.+$").match(s) # K H Head:Vol.2, Cl 10
+        if vol:
+            return vol.group(1)
+
+        clause = re.compile("(?i)^(.+)\sClause\s.+$").match(s) # PS 18 Clause 5.8
+        if clause:
+            return clause.group(1)
+
+        if len(s.split()) < 2: # this ensures that there are at least two words in the string
+          return s
+
+        hyphen = re.compile("^([^-]+)-.+$").match(s) # BS 812-121
+        if hyphen:
+          return hyphen.group(1)
+
+        colon = re.compile("^([^:]+):.+$").match(s) # K H Head:Vol.2, Cl 10
+        if colon:
+            return colon.group(1)
+
+        twowords = re.compile("^([A-Z0-9]+\s[A-Z0-9]+)\s.+$").match(s) # ASTM C128 Gravimetric Method
+        if twowords:
             return twowords.group(1)
+
         return s
 
     def dump_tuples(self, listt):
@@ -153,7 +182,7 @@ class TestMethodMismatchIdentification:
         else it will perform the search and cache those results
         """
 
-        method_filename = method.replace("<","..").replace(">",".-").replace(":",".+").replace("\"","-.").replace("/","--").replace("\\","-+").replace("|","+.").replace("?","+-").replace("*","++")
+        method_filename = method.replace("<","..").replace(">",".-").replace(":",".+").replace("\"","-.").replace("/","--").replace("\\","-+").replace("|","+.").replace("?","+-").replace("*","++").replace(",","...")
 
         # if cached results for the method search already exists, return it instead of doing the search again
         if method_filename in self.cached_list:
@@ -183,6 +212,8 @@ class TestMethodMismatchIdentification:
         selectElem.send_keys(method.strip())
         selectElem.send_keys(Keys.ENTER)
         selectElem=driver.find_element_by_xpath('//*[@id="ProductSearch"]/div[2]').click()
+        if method == "BS EN":
+            time.sleep(8) #BS EN results takes a LOONG time to load
         time.sleep(2)
 
         # Obtain the result table from the page
@@ -212,7 +243,7 @@ class TestMethodMismatchIdentification:
         temp_df = pd.DataFrame(tbl_list)
 
         # cache the results of this search into a csv file and update the cached_list
-        temp_df.to_csv("./data/{}.csv".format(method.replace(":","..")), header=None, index=None, escapechar="|")
+        temp_df.to_csv("./data/{}.csv".format(method_filename), header=None, index=None, escapechar="|")
         self.cached_list.append(method)
         print("")
 
@@ -300,7 +331,7 @@ class TestMethodMismatchIdentification:
                 max_percentage = max(df[6]) # the highest number of keyword matches in the table
                 keyword_matches = []
                 if max_percentage == 0:
-                    return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
+                    return "Searched for \"{}\" with {} hits but no item matches \"{}\"".format(test_method, len(res), test_item)
                 else: # max_percentage != 0
                     for i in range(len(df)):
                         res_id     = df.iloc[i][0]
@@ -323,9 +354,6 @@ class TestMethodMismatchIdentification:
         if recursion_level == 0:
             counter.increment()
 
-        if counter.count == 11:
-            ipdb.set_trace()
-
         # limit is used to check how many total iterations are needed
         # counter.count tracks how many of those iterations have already been completed
         limit = counter.limit if counter.limit>0 else self.input_df.shape[0]
@@ -339,6 +367,8 @@ class TestMethodMismatchIdentification:
         if pd.notnull(test_id) and re.compile("[A-Z0-9]{6}").match(test_id):
             return test_id
         else:
+            if counter.count == 67:
+                ipdb.set_trace()
             res=self.search(test_method.strip())
 
         # If there are 0 results, refine the test_method string and call obtain_id() again recursively. If the test_method cannot be further refined (meaning the refine_search() method returns the same string) then there really are no hits
@@ -358,9 +388,9 @@ class TestMethodMismatchIdentification:
         if res.shape[0] == 1:
             return self.verify_single_entry(res.iloc[0], test_item)
         else: # res.shape[0] > 1
-            res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
-            print("exact hits: {}".format(res_EXACT_method.shape[0]))
-            with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res_EXACT_method)
+            # res_EXACT_method=res[res[2] == test_method.strip()] #select only the entries where the test_method matches exactly
+            # print("exact hits: {}".format(res_EXACT_method.shape[0]))
+            # with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res_EXACT_method)
             return self.filter_and_verify_multiple_entries(res, test_item, test_method, counter)
         print("you should never reach this part of obtain_id()")
         return "you should never reach this part of obtain_id()"
