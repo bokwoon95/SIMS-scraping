@@ -9,7 +9,7 @@ setlocal keymap=
 setlocal noarabic
 setlocal autoindent
 setlocal backupcopy=
-setlocal balloonexpr=
+setlocal balloonexpr=netrw#BalloonHelp()
 setlocal nobinary
 setlocal breakindent
 setlocal breakindentopt=
@@ -128,18 +128,20 @@ silent! normal! zE
 180,251fold
 253,275fold
 277,296fold
-298,341fold
-343,377fold
-379,383fold
-385,399fold
-180
+298,371fold
+373,407fold
+409,413fold
+415,429fold
+298
 normal! zo
-let s:l = 232 - ((34 * winheight(0) + 20) / 41)
+373
+normal! zo
+let s:l = 373 - ((0 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-232
-normal! 045|
+373
+normal! 0
 let &so = s:so_save | let &siso = s:siso_save
 doautoall SessionLoadPost
 " vim: set ft=vim :

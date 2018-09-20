@@ -336,45 +336,75 @@ class TestMethodMismatchIdentification:
                 stringg = self.dump_tuples(all_entries)
                 return stringg
             else: # len(partial matches) == 0
-                return self.filter_by_keywords(res, test_item, test_method, counter)
+                # return self.filter_by_keywords(res, test_item, test_method, counter)
+                all_entries_detailed = []
+                for i in range(len(res)):
+
+                    res_id     = res.iloc[i][0]
+                    res_item   = res.iloc[i][1]
+                    res_method = res.iloc[i][2]
+
+                    fraction = self.compare_keywords(test_item, res_item)
+                    rgx = re.compile("(\d+)/(\d+)")
+                    percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2))
+                    all_entries_detailed.append( (res_id, res_item, res_method, test_item, test_method, fraction, percentage) )
+
+                df = pd.DataFrame(all_entries_detailed)
+
+                max_percentage = max(df[6])
+                keyword_matches = []
+                if max_percentage == 0:
+                    return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
+                else: # max_percentage != 0
+                    for i in range(len(df)):
+                        res_id     = df.iloc[i][0]
+                        res_item   = df.iloc[i][1]
+                        res_method = df.iloc[i][2]
+                        percentage = df.iloc[i][6]
+                        if percentage == max_percentage:
+                            keyword_matches.append( (res_id, res_item) )
+                    stringg = self.dump_tuples(keyword_matches)
+                    print("{} Keyword Matches".format(len(keyword_matches)))
+                    print("{}".format(stringg))
+                    return stringg
         print("You should never reach this part of filter_and_verify_multiple_entries()")
         return "You should never reach this part of filter_and_verify_multiple_entries()"
 
-    def filter_by_keywords(self, res, test_item, test_method, counter):
-        """
-        """
-        all_entries_detailed = []
-        for i in range(len(res)):
+    # def filter_by_keywords(self, res, test_item, test_method, counter):
+    #     """
+    #     """
+    #     all_entries_detailed = []
+    #     for i in range(len(res)):
 
-            res_id     = res.iloc[i][0]
-            res_item   = res.iloc[i][1]
-            res_method = res.iloc[i][2]
+    #         res_id     = res.iloc[i][0]
+    #         res_item   = res.iloc[i][1]
+    #         res_method = res.iloc[i][2]
 
-            fraction = self.compare_keywords(test_item, res_item)
-            rgx = re.compile("(\d+)/(\d+)")
-            percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2))
-            all_entries_detailed.append( (res_id, res_item, res_method, test_item, test_method, fraction, percentage) )
+    #         fraction = self.compare_keywords(test_item, res_item)
+    #         rgx = re.compile("(\d+)/(\d+)")
+    #         percentage = int(rgx.match(fraction).group(1)) / int(rgx.match(fraction).group(2))
+    #         all_entries_detailed.append( (res_id, res_item, res_method, test_item, test_method, fraction, percentage) )
 
-        df = pd.DataFrame(all_entries_detailed)
+    #     df = pd.DataFrame(all_entries_detailed)
 
-        max_percentage = max(df[6])
-        keyword_matches = []
-        if max_percentage == 0:
-            return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
-        else: # max_percentage != 0
-            for i in range(len(df)):
-                res_id     = df.iloc[i][0]
-                res_item   = df.iloc[i][1]
-                res_method = df.iloc[i][2]
-                percentage = df.iloc[i][6]
-                if percentage == max_percentage:
-                    keyword_matches.append( (res_id, res_item) )
-            stringg = self.dump_tuples(keyword_matches)
-            print("{} Keyword Matches".format(len(keyword_matches)))
-            print("{}".format(stringg))
-            return stringg
-        print("You should never reach this part of filter_by_keywords()")
-        return "You should never reach this part of filter_by_keywords()"
+    #     max_percentage = max(df[6])
+    #     keyword_matches = []
+    #     if max_percentage == 0:
+    #         return "Searched for \"{}\" with {} hits but no item matches \"{}\" exactly".format(test_method, len(res), test_item)
+    #     else: # max_percentage != 0
+    #         for i in range(len(df)):
+    #             res_id     = df.iloc[i][0]
+    #             res_item   = df.iloc[i][1]
+    #             res_method = df.iloc[i][2]
+    #             percentage = df.iloc[i][6]
+    #             if percentage == max_percentage:
+    #                 keyword_matches.append( (res_id, res_item) )
+    #         stringg = self.dump_tuples(keyword_matches)
+    #         print("{} Keyword Matches".format(len(keyword_matches)))
+    #         print("{}".format(stringg))
+    #         return stringg
+    #     print("You should never reach this part of filter_by_keywords()")
+    #     return "You should never reach this part of filter_by_keywords()"
 
     def dump_tuples(self, listt):
         stringg = ""
