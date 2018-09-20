@@ -153,7 +153,7 @@ class TestMethodMismatchIdentification:
         else it will perform the search and cache those results
         """
 
-        method_filename = method.replace(":","..") # Windows forbids filenames with a colon ":", replace those with two dots ".." instead
+        method_filename = method.replace("<","..").replace(">",".-").replace(":",".+").replace("\"","-.").replace("/","--").replace("\\","-+").replace("|","+.").replace("?","+-").replace("*","++")
 
         # if cached results for the method search already exists, return it instead of doing the search again
         if method_filename in self.cached_list:
@@ -322,6 +322,9 @@ class TestMethodMismatchIdentification:
         """
         if recursion_level == 0:
             counter.increment()
+
+        if counter.count == 11:
+            ipdb.set_trace()
 
         # limit is used to check how many total iterations are needed
         # counter.count tracks how many of those iterations have already been completed
