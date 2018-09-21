@@ -35,16 +35,17 @@ class TestMethodMismatchIdentification:
         # self.cached_list = [] # uncomment this if you want to regenerate your cache
 
         # Initialize input dataframe from excel file
-        self.input_df = pd.read_excel("./{}".format(excel_input), header=None, usecols=[0,1])
+        self.input_df = pd.read_excel("./{}".format(excel_input), header=None, usecols=[0,1,2])
 
         # Make sure input_df has 3 columns: test_id, test_item and test_method
         if self.input_df.shape[1] == 2:
             self.input_df.insert(0,"","")
-            self.input_df.columns = ["test_id","test_item","test_method"]
         elif self.input_df.shape[1] == 3:
             """do nothing"""
         else:
             sys.exit("{} must be an excel file with only 2 or 3 columns ({} detected)".format(excel_input, self.input_df.shape[1]))
+        # Rename the columns
+        self.input_df.columns = ["test_id","test_item","test_method"]
 
     def sanitize(self, s):
         """
@@ -262,21 +263,21 @@ class TestMethodMismatchIdentification:
         Takes in a single entry from a table (in the form of a pandas Series)
         and checks if it matches the test_item
         """
-        res_id     = srs[0]
-        res_item   = srs[1]
+        # res_id     = srs[0]
+        # res_item   = srs[1]
 
-        # if the test_item string matches the res_item string perfectly, return the res_id
-        if self.sanitize(res_item) == self.sanitize(test_item):
-            print("Perfect Match: {} | {}".format(res_item, test_item))
-            return res_id
-        # else if either of the item strings are a substring of the other, also return the res_id
-        elif self.substring_check(res_item, test_item):
-            print("{} | {}".format(res_item, test_item))
-            return res_id
-        # else return the res_id anyway, followed by the res_item string for manual verification later
-        else:
-            print("{} | {}".format(res_item, test_item))
-            return "{}| {}".format(res_id, res_item)
+        # # if the test_item string matches the res_item string perfectly, return the res_id
+        # if self.sanitize(res_item) == self.sanitize(test_item):
+        #     print("Perfect Match: {} | {}".format(res_item, test_item))
+        #     return res_id
+        # # else if either of the item strings are a substring of the other, also return the res_id
+        # elif self.substring_check(res_item, test_item):
+        #     print("{} | {}".format(res_item, test_item))
+        #     return res_id
+        # # else return the res_id anyway, followed by the res_item string for manual verification later
+        # else:
+        #     print("{} | {}".format(res_item, test_item))
+        #     return "{}| {}".format(res_id, res_item)
         print("You should never reach this part of verify_single_entry()")
         return "You should never reach this part of verify_single_entry()"
 
@@ -302,8 +303,16 @@ class TestMethodMismatchIdentification:
             all_entries.append( (res_id, res_item, res_method) )
 
         if len(perfect_matches) == 1:
-            srs = pd.Series(perfect_matches[0])
-            return self.verify_single_entry(srs, test_item)
+            res_id     = perfect_matches[0][0]
+            res_item   = perfect_matches[0][1]
+            if self.sanitize(res_item) == self.sanitize(test_item):
+                print("Perfect Match: {} | {}".format(res_item, test_item))
+                return res_id
+            else:
+                print("{} | {}".format(res_item, test_item))
+                return res_id
+            # srs = pd.Series(perfect_matches[0])
+            # return self.verify_single_entry(srs, test_item)
         elif len(perfect_matches) > 1:
             stringg = self.dump_tuples(perfect_matches)
             print("{} Perfect Matches".format(len(perfect_matches)))
@@ -311,8 +320,16 @@ class TestMethodMismatchIdentification:
             return stringg
         else: # len(perfect matches) == 0
             if len(partial_matches) == 1:
-                srs = pd.Series(partial_matches[0])
-                return self.verify_single_entry(srs, test_item)
+                res_id     = partial_matches[0][0]
+                res_item   = partial_matches[0][1]
+                if self.sanitize(res_item) == self.sanitize(test_item):
+                    print("Perfect Match: {} | {}".format(res_item, test_item))
+                    return res_id
+                else:
+                    print("{} | {}".format(res_item, test_item))
+                    return res_id
+                # srs = pd.Series(partial_matches[0])
+                # return self.verify_single_entry(srs, test_item)
             elif len(partial_matches) > 1:
                 stringg = self.dump_tuples(partial_matches)
                 print("{} Partial Matches".format(len(perfect_matches)))
@@ -397,7 +414,18 @@ class TestMethodMismatchIdentification:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.max_colwidth', -1): print(res)
 
         if res.shape[0] == 1:
-            return self.verify_single_entry(res.iloc[0], test_item)
+            res_id     = res.iloc[0][0]
+            res_item   = res.iloc[0][1]
+            if self.sanitize(res_item) == self.sanitize(test_item):
+                print("Perfect Match: {} | {}".format(res_item, test_item))
+                return res_id
+            else:
+                print("{} | {}".format(res_item, test_item))
+                return res_id
+            # res_id     = res.iloc[i][0]
+            # res_item   = res.iloc[i][1]
+            # res_method = res.iloc[i][2]
+            # return self.verify_single_entry(res.iloc[0], test_item)
         else: # res.shape[0] > 1
             return self.filter_and_verify_multiple_entries(res, test_item, test_method)
         print("you should never reach this part of obtain_id()")

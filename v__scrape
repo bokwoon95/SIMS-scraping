@@ -4,11 +4,12 @@ if bufexists('~/Documents/SIMS-scraping/scrape.py') | buffer ~/Documents/SIMS-sc
 xmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  1)
 nmap <buffer> <expr> " peekaboo#peek(v:count1, '"',  0)
 nmap <buffer> <expr> @ peekaboo#peek(v:count1, '@', 0)
-imap <buffer> <expr>  peekaboo#peek(1, "\",  0)
+imap <buffer> <expr>  peekaboo#peek(1, "/",  0)
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
 setlocal backupcopy=
+setlocal balloonexpr=
 setlocal nobinary
 setlocal breakindent
 setlocal breakindentopt=
@@ -21,12 +22,13 @@ setlocal cinoptions=
 setlocal cinwords=if,else,while,do,for,switch
 setlocal colorcolumn=
 setlocal comments=b:#,fb:-
-setlocal commentstring=#\ %s
+setlocal commentstring=#/ %s
 setlocal complete=.,w,b,u,t
 setlocal concealcursor=inc
 setlocal conceallevel=2
 setlocal completefunc=
 setlocal nocopyindent
+setlocal cryptmethod=
 setlocal nocursorbind
 setlocal nocursorcolumn
 setlocal nocursorline
@@ -52,13 +54,13 @@ setlocal foldnestmax=20
 setlocal foldtext=foldtext()
 setlocal formatexpr=
 setlocal formatoptions=tcqj
-setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal formatlistpat=^//s*//d//+[//]:.)}//t/ ]//s*
 setlocal formatprg=
 setlocal grepprg=
 setlocal iminsert=0
 setlocal imsearch=0
-setlocal include=^\\s*\\(from\\|import\\)
-setlocal includeexpr=substitute(v:fname,'\\.','/','g')
+setlocal include=^//s*//(from//|import//)
+setlocal includeexpr=substitute(v:fname,'//.','/','g')
 setlocal indentexpr=GetPythonIndent(v:lnum)
 setlocal indentkeys=0{,0},:,!^F,o,O,e,<:>,=elif,=except
 setlocal noinfercase
@@ -80,19 +82,19 @@ setlocal omnifunc=pythoncomplete#Complete
 setlocal path=
 setlocal nopreserveindent
 setlocal nopreviewwindow
-setlocal quoteescape=\\
+setlocal quoteescape=//
 setlocal noreadonly
 setlocal norelativenumber
 setlocal norightleft
 setlocal rightleftcmd=search
-setlocal scrollback=-1
 setlocal noscrollbind
 setlocal shiftwidth=4
+setlocal noshortname
 setlocal signcolumn=auto
 setlocal nosmartindent
 setlocal softtabstop=4
 setlocal nospell
-setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellcapcheck=[.?!]//_[//])'/"/	/ ]//+
 setlocal spellfile=
 setlocal spelllang=en
 setlocal statusline=
@@ -105,37 +107,37 @@ endif
 setlocal tabstop=4
 setlocal tagcase=
 setlocal tags=
+setlocal termwinkey=
+setlocal termwinscroll=10000
+setlocal termwinsize=
 setlocal textwidth=0
 setlocal thesaurus=
 setlocal noundofile
 setlocal undolevels=-123456
-setlocal winhighlight=
 setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
 12,19fold
-23,47fold
-49,57fold
-59,61fold
-63,87fold
-89,141fold
-143,153fold
-155,183fold
-185,258fold
-260,281fold
-283,361fold
-363,404fold
-406,413fold
-63
-normal! zo
-let s:l = 81 - ((61 * winheight(0) + 21) / 42)
+23,48fold
+50,58fold
+60,62fold
+64,88fold
+90,142fold
+144,154fold
+156,184fold
+186,259fold
+261,282fold
+284,378fold
+380,432fold
+434,441fold
+let s:l = 23 - ((22 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-81
-normal! 0118|
+23
+normal! 0
 lcd ~/Documents/SIMS-scraping
 let &so = s:so_save | let &siso = s:siso_save
 doautoall SessionLoadPost
