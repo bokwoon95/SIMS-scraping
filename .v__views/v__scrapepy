@@ -9,7 +9,7 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-21,48fold
+23,48fold
 50,58fold
 60,62fold
 64,88fold
