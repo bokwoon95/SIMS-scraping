@@ -166,10 +166,10 @@ class TestMethodMismatchIdentification:
         # Enter username and password
         selectElem=drv.find_element_by_id("UserName")
         selectElem.clear()
-        selectElem.send_keys("vignesh.v")
+        selectElem.send_keys("username")
         selectElem=drv.find_element_by_name("pwd")
         selectElem.clear()
-        selectElem.send_keys("Adjan2017#")
+        selectElem.send_keys("password")
 
         # Press 'Login'
         selectElem=drv.find_element_by_xpath('//*[@id="LoginMain"]/div/div[3]/form/button')
